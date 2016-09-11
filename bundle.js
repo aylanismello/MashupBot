@@ -21481,7 +21481,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var path = './stems';
-	var bpm = 60;
+	var bpm = 80;
 	
 	var TimeSlices = {
 		FOUR: 4,
@@ -21496,25 +21496,50 @@
 		function Root(props) {
 			_classCallCheck(this, Root);
 	
+			var timeSlice = TimeSlices.THIRTYTWO;
+	
 			var _this = _possibleConstructorReturn(this, (Root.__proto__ || Object.getPrototypeOf(Root)).call(this, props));
 	
 			_this.state = {
 				note: 0,
-				loaded: false
+				loaded: false,
+				playing: false
 			};
 	
+			var canvas = document.querySelector("#can");
+			var ctx = canvas.getContext("2d");
+			var max = 2 * Math.PI;
+	
+			_this.circle = {
+				canvas: canvas,
+				ctx: ctx,
+				max: max
+			};
+	
+			_this.drawAtRad = _this.drawAtRad.bind(_this);
 			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
 			_this.contxt = new AudioContext();
 			_this.sched = new _webAudioScheduler2.default({ context: _this.contxt });
 			_this.channels = [];
 			_this.startMetronome = _this.startMetronome.bind(_this);
 			_this.metronome = _this.metronome.bind(_this);
+			_this.handleUser = _this.handleUser.bind(_this);
+			_this.tick = _this.tick.bind(_this);
 			_this.createAudioPipeline();
 	
 			return _this;
 		}
 	
 		_createClass(Root, [{
+			key: 'drawAtRad',
+			value: function drawAtRad(startingRadian, strokeLength) {
+	
+				this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+				this.circle.ctx.beginPath();
+				this.circle.ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+				this.circle.ctx.stroke();
+			}
+		}, {
 			key: 'createChannel',
 			value: function createChannel(buffer, channelName) {
 				var source = this.contxt.createBufferSource();
@@ -21546,50 +21571,77 @@
 						_this2.channels.push(_this2.createChannel(buffer, buffers[idx]));
 					});
 	
-					_this2.channels.forEach(function (channel) {
-						channel.setGain(0);
-						channel.source.start(0);
-					});
-	
 					_this2.setState({ loaded: true });
-					_this2.createMetronome(TimeSlices.FOUR);
-					// this.createMetronome(TimeSlices.EIGHT);
-					// this.createMetronome(TimeSlices.SIXTEEN);
-					// this.createMetronome(TimeSlices.THIRTYTWO);
+	
 					window.channels = _this2.channels;
 				});
 			}
-		}, {
-			key: 'createMetronome',
-			value: function createMetronome(timeSlice) {
-				var bpmMultiplier = Math.log2(timeSlice / 2);
-				var spb = 60.0 / (bpm * bpmMultiplier);
-				var startTime = this.contxt.currentTime;
-			}
-		}, {
-			key: 'play',
-			value: function play() {}
 		}, {
 			key: 'metronome',
 			value: function metronome(e) {
 				var t0 = e.playbackTime;
 				console.log('starting metronome at ' + e.playbackTime);
-				this.sched.insert(t0 + 2.000, this.metronome);
+				// debugger;
+	
+	
+				for (var step = 0; step <= TimeSlices.FOUR; step++) {
+					var schedStartTime = t0 + this.spb * step;
+	
+					if (step === TimeSlices.FOUR) {
+						this.sched.insert(t0 + this.spb * TimeSlices.FOUR, this.metronome);
+					} else {
+						this.sched.insert(schedStartTime, this.tick, { beat: step });
+					}
+				}
+	
+				// this.sched.insert(t0, this.tick, {beat: 0});
+				// this.sched.insert(t0 + this.spb, this.tick, {beat: 1});
+				// this.sched.insert(t0 + this.spb * 2, this.tick, {beat: 2});
+				// this.sched.insert(t0 + this.spb * 3, this.tick, {beat: 3});
+				// this.sched.insert(t0 + this.spb * 4, this.metronome);
+				//
 			}
 		}, {
 			key: 'tick',
 			value: function tick(e) {
+				console.log('tick ' + e.playbackTime + ' and beat ' + e.args.beat);
+	
+				var arcSize = this.circle.max / 4.0;
+				var startingRad = e.args.beat / 4.0 * this.circle.max;
+	
+				// let endRad = startingRad + arcSize;
+				this.drawAtRad(startingRad, arcSize);
 				// let t0 = e.play
+			}
+		}, {
+			key: 'handleUser',
+			value: function handleUser() {
+				if (this.state.playing) {
+					console.log('stop');
+				} else {
+					this.startMetronome();
+				}
 			}
 		}, {
 			key: 'startMetronome',
 			value: function startMetronome() {
 				// console.log('FO SHO');
+				var timeSlice = TimeSlices.FOUR;
+				var bpmMultiplier = Math.log2(timeSlice / 2);
+				var spb = 60.0 / (bpm * bpmMultiplier);
+				this.spb = spb;
+				this.setState({ playing: true });
+				this.channels.forEach(function (channel) {
+					channel.setGain(0.25);
+					channel.source.start(0);
+				});
 				this.sched.start(this.metronome);
 			}
 		}, {
 			key: 'render',
 			value: function render() {
+	
+				var playerText = this.state.playing ? "STOP" : "START";
 	
 				if (this.state.loaded) {
 					return _react2.default.createElement(
@@ -21605,8 +21657,8 @@
 						}),
 						_react2.default.createElement(
 							'button',
-							{ onClick: this.startMetronome, value: 'start' },
-							'START'
+							{ onClick: this.handleUser },
+							playerText
 						)
 					);
 				} else {
