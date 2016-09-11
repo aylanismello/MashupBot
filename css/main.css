@@ -42,4 +42,9 @@ p {
     stroke-dashoffset: 0;
     stroke-dasharray: 0; }
 
+#prog {
+  margin: 20px;
+  width: 200px;
+  height: 200px; }
+
 /*# sourceMappingURL=main.css.map */

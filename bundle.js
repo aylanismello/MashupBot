@@ -21460,9 +21460,17 @@
 	
 	var _slider2 = _interopRequireDefault(_slider);
 	
-	var _yo = __webpack_require__(177);
+	var _react_slider = __webpack_require__(193);
 	
-	var _yo2 = _interopRequireDefault(_yo);
+	var _react_slider2 = _interopRequireDefault(_react_slider);
+	
+	var _progress_circle = __webpack_require__(178);
+	
+	var _progress_circle2 = _interopRequireDefault(_progress_circle);
+	
+	var _webAudioScheduler = __webpack_require__(194);
+	
+	var _webAudioScheduler2 = _interopRequireDefault(_webAudioScheduler);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -21473,8 +21481,14 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var path = './stems';
-	var bpm = 320.0;
-	var spb = 60.0 / bpm;
+	var bpm = 60;
+	
+	var TimeSlices = {
+		FOUR: 4,
+		EIGHT: 8,
+		SIXTEEN: 16,
+		THIRTYTWO: 32
+	};
 	
 	var Root = function (_React$Component) {
 		_inherits(Root, _React$Component);
@@ -21489,17 +21503,20 @@
 				loaded: false
 			};
 	
+			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
 			_this.contxt = new AudioContext();
-			_this.sources = [];
+			_this.sched = new _webAudioScheduler2.default({ context: _this.contxt });
+			_this.channels = [];
+			_this.startMetronome = _this.startMetronome.bind(_this);
+			_this.metronome = _this.metronome.bind(_this);
 			_this.createAudioPipeline();
 	
-			// this.createMetronome();
 			return _this;
 		}
 	
 		_createClass(Root, [{
-			key: 'createSource',
-			value: function createSource(buffer, channelName) {
+			key: 'createChannel',
+			value: function createChannel(buffer, channelName) {
 				var source = this.contxt.createBufferSource();
 				source.buffer = buffer;
 				source.loop = true;
@@ -21526,32 +21543,50 @@
 	
 				(0, _webaudioBufferLoader2.default)(buffers, this.contxt, function (err, loadedBuffers) {
 					loadedBuffers.forEach(function (buffer, idx) {
-						_this2.sources.push(_this2.createSource(buffer, buffers[idx]));
+						_this2.channels.push(_this2.createChannel(buffer, buffers[idx]));
 					});
 	
-					_this2.sources.forEach(function (source) {
-						return source.source.start(0);
+					_this2.channels.forEach(function (channel) {
+						channel.setGain(0);
+						channel.source.start(0);
 					});
 	
 					_this2.setState({ loaded: true });
-					window.sources = _this2.sources;
+					_this2.createMetronome(TimeSlices.FOUR);
+					// this.createMetronome(TimeSlices.EIGHT);
+					// this.createMetronome(TimeSlices.SIXTEEN);
+					// this.createMetronome(TimeSlices.THIRTYTWO);
+					window.channels = _this2.channels;
 				});
 			}
 		}, {
 			key: 'createMetronome',
-			value: function createMetronome() {
-				var _this3 = this;
-	
-				var sixteenthNote = 0;
-	
-				var intervalID = window.setInterval(function () {
-	
-					_this3.setState({ note: sixteenthNote++ % 16 });
-				}, spb * 1000);
+			value: function createMetronome(timeSlice) {
+				var bpmMultiplier = Math.log2(timeSlice / 2);
+				var spb = 60.0 / (bpm * bpmMultiplier);
+				var startTime = this.contxt.currentTime;
 			}
 		}, {
 			key: 'play',
 			value: function play() {}
+		}, {
+			key: 'metronome',
+			value: function metronome(e) {
+				var t0 = e.playbackTime;
+				console.log('starting metronome at ' + e.playbackTime);
+				this.sched.insert(t0 + 2.000, this.metronome);
+			}
+		}, {
+			key: 'tick',
+			value: function tick(e) {
+				// let t0 = e.play
+			}
+		}, {
+			key: 'startMetronome',
+			value: function startMetronome() {
+				// console.log('FO SHO');
+				this.sched.start(this.metronome);
+			}
 		}, {
 			key: 'render',
 			value: function render() {
@@ -21560,14 +21595,19 @@
 					return _react2.default.createElement(
 						'div',
 						null,
-						this.sources.map(function (source) {
+						this.channels.map(function (channel) {
 							return _react2.default.createElement(
 								'div',
 								null,
-								_react2.default.createElement(_yo2.default, { setGain: source.setGain }),
-								source.channelName
+								_react2.default.createElement(_react_slider2.default, { setGain: channel.setGain }),
+								channel.channelName
 							);
-						})
+						}),
+						_react2.default.createElement(
+							'button',
+							{ onClick: this.startMetronome, value: 'start' },
+							'START'
+						)
 					);
 				} else {
 					return _react2.default.createElement(
@@ -22902,7 +22942,608 @@
 	exports.default = Slider;
 
 /***/ },
-/* 177 */
+/* 177 */,
+/* 178 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ProgressCircle = function (_React$Component) {
+		_inherits(ProgressCircle, _React$Component);
+	
+		function ProgressCircle() {
+			_classCallCheck(this, ProgressCircle);
+	
+			return _possibleConstructorReturn(this, (ProgressCircle.__proto__ || Object.getPrototypeOf(ProgressCircle)).apply(this, arguments));
+		}
+	
+		_createClass(ProgressCircle, [{
+			key: "render",
+			value: function render() {
+				return _react2.default.createElement(
+					"div",
+					{ "class": "radial-progress", "data-progress": "0" },
+					_react2.default.createElement(
+						"div",
+						{ "class": "circle" },
+						_react2.default.createElement(
+							"div",
+							{ "class": "mask full" },
+							_react2.default.createElement("div", { "class": "fill" })
+						),
+						_react2.default.createElement(
+							"div",
+							{ "class": "mask half" },
+							_react2.default.createElement("div", { "class": "fill" }),
+							_react2.default.createElement("div", { "class": "fill fix" })
+						),
+						_react2.default.createElement("div", { "class": "shadow" })
+					),
+					_react2.default.createElement(
+						"div",
+						{ "class": "inset" },
+						_react2.default.createElement(
+							"div",
+							{ "class": "percentage" },
+							_react2.default.createElement(
+								"div",
+								{ "class": "numbers" },
+								_react2.default.createElement(
+									"span",
+									null,
+									"-"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"0%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"1%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"2%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"3%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"4%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"5%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"6%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"7%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"8%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"9%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"10%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"11%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"12%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"13%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"14%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"15%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"16%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"17%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"18%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"19%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"20%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"21%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"22%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"23%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"24%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"25%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"26%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"27%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"28%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"29%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"30%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"31%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"32%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"33%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"34%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"35%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"36%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"37%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"38%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"39%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"40%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"41%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"42%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"43%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"44%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"45%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"46%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"47%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"48%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"49%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"50%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"51%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"52%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"53%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"54%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"55%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"56%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"57%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"58%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"59%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"60%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"61%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"62%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"63%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"64%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"65%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"66%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"67%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"68%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"69%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"70%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"71%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"72%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"73%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"74%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"75%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"76%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"77%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"78%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"79%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"80%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"81%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"82%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"83%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"84%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"85%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"86%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"87%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"88%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"89%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"90%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"91%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"92%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"93%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"94%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"95%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"96%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"97%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"98%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"99%"
+								),
+								_react2.default.createElement(
+									"span",
+									null,
+									"100%"
+								)
+							)
+						)
+					)
+				);
+			}
+		}]);
+	
+		return ProgressCircle;
+	}(_react2.default.Component);
+	
+	exports.default = ProgressCircle;
+
+/***/ },
+/* 179 */,
+/* 180 */,
+/* 181 */,
+/* 182 */,
+/* 183 */,
+/* 184 */,
+/* 185 */,
+/* 186 */,
+/* 187 */,
+/* 188 */,
+/* 189 */,
+/* 190 */,
+/* 191 */,
+/* 192 */,
+/* 193 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -22925,21 +23566,21 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var Yo = function (_React$Component) {
-	  _inherits(Yo, _React$Component);
+	var ReactSlider = function (_React$Component) {
+	  _inherits(ReactSlider, _React$Component);
 	
-	  function Yo(props) {
-	    _classCallCheck(this, Yo);
+	  function ReactSlider(props) {
+	    _classCallCheck(this, ReactSlider);
 	
-	    var _this = _possibleConstructorReturn(this, (Yo.__proto__ || Object.getPrototypeOf(Yo)).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
 	
-	    _this.state = { value: 0.6 };
+	    _this.state = { value: 0 };
 	    _this.handleChange = _this.handleChange.bind(_this);
 	    _this.setGain = _this.props.setGain;
 	    return _this;
 	  }
 	
-	  _createClass(Yo, [{
+	  _createClass(ReactSlider, [{
 	    key: "handleChange",
 	    value: function handleChange(x, y) {
 	      this.setState({ value: y });
@@ -22960,7 +23601,7 @@
 	    }
 	  }]);
 	
-	  return Yo;
+	  return ReactSlider;
 	}(_react2.default.Component);
 	
 	var Slider = function (_React$Component2) {
@@ -23109,7 +23750,536 @@
 	  return Slider;
 	}(_react2.default.Component);
 	
-	exports.default = Yo;
+	exports.default = ReactSlider;
+
+/***/ },
+/* 194 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(195);
+
+
+/***/ },
+/* 195 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	module.exports = __webpack_require__(196);
+
+/***/ },
+/* 196 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {"use strict";
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var events = __webpack_require__(197);
+	var defaults = __webpack_require__(198);
+	var defaultContext = __webpack_require__(199);
+	
+	var WebAudioScheduler = function (_events$EventEmitter) {
+	  _inherits(WebAudioScheduler, _events$EventEmitter);
+	
+	  function WebAudioScheduler(opts) {
+	    _classCallCheck(this, WebAudioScheduler);
+	
+	    opts = opts || /* istanbul ignore next */{};
+	
+	    var _this = _possibleConstructorReturn(this, (WebAudioScheduler.__proto__ || Object.getPrototypeOf(WebAudioScheduler)).call(this));
+	
+	    _this.context = defaults(opts.context, defaultContext);
+	    _this.interval = defaults(opts.interval, 0.025);
+	    _this.aheadTime = defaults(opts.aheadTime, 0.1);
+	    _this.timerAPI = defaults(opts.timerAPI, global);
+	    _this.playbackTime = _this.currentTime;
+	
+	    _this._timerId = 0;
+	    _this._schedId = 0;
+	    _this._scheds = [];
+	    return _this;
+	  }
+	
+	  _createClass(WebAudioScheduler, [{
+	    key: "start",
+	    value: function start(callback, args) {
+	      var _this2 = this;
+	
+	      var loop = function loop() {
+	        var t0 = _this2.context.currentTime;
+	        var t1 = t0 + _this2.aheadTime;
+	
+	        _this2._process(t0, t1);
+	      };
+	
+	      if (this._timerId === 0) {
+	        this._timerId = this.timerAPI.setInterval(loop, this.interval * 1000);
+	
+	        this.emit("start");
+	
+	        if (callback) {
+	          this.insert(this.context.currentTime, callback, args);
+	          loop();
+	        }
+	      } else if (callback) {
+	        this.insert(this.context.currentTime, callback, args);
+	      }
+	
+	      return this;
+	    }
+	  }, {
+	    key: "stop",
+	    value: function stop() {
+	      var reset = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+	
+	      if (this._timerId !== 0) {
+	        this.timerAPI.clearInterval(this._timerId);
+	        this._timerId = 0;
+	
+	        this.emit("stop");
+	      }
+	
+	      if (reset) {
+	        this._scheds.splice(0);
+	      }
+	
+	      return this;
+	    }
+	  }, {
+	    key: "insert",
+	    value: function insert(time, callback, args) {
+	      var id = ++this._schedId;
+	      var event = { id: id, time: time, callback: callback, args: args };
+	      var scheds = this._scheds;
+	
+	      if (scheds.length === 0 || scheds[scheds.length - 1].time <= time) {
+	        scheds.push(event);
+	      } else {
+	        for (var i = 0, imax = scheds.length; i < imax; i++) {
+	          if (time < scheds[i].time) {
+	            scheds.splice(i, 0, event);
+	            break;
+	          }
+	        }
+	      }
+	
+	      return id;
+	    }
+	  }, {
+	    key: "nextTick",
+	    value: function nextTick(time, callback, args) {
+	      if (typeof time === "function") {
+	        args = callback;
+	        callback = time;
+	        time = this.playbackTime;
+	      }
+	
+	      return this.insert(time + this.aheadTime, callback, args);
+	    }
+	  }, {
+	    key: "remove",
+	    value: function remove(schedId) {
+	      var scheds = this._scheds;
+	
+	      if (typeof schedId === "number") {
+	        for (var i = 0, imax = scheds.length; i < imax; i++) {
+	          if (schedId === scheds[i].id) {
+	            scheds.splice(i, 1);
+	            break;
+	          }
+	        }
+	      }
+	
+	      return schedId;
+	    }
+	  }, {
+	    key: "removeAll",
+	    value: function removeAll() {
+	      this._scheds.splice(0);
+	    }
+	  }, {
+	    key: "_process",
+	    value: function _process(t0, t1) {
+	      var scheds = this._scheds;
+	      var playbackTime = t0;
+	
+	      this.playbackTime = playbackTime;
+	      this.emit("process", { playbackTime: playbackTime });
+	
+	      while (scheds.length && scheds[0].time < t1) {
+	        var event = scheds.shift();
+	        var _playbackTime = event.time;
+	        var args = event.args;
+	
+	        this.playbackTime = _playbackTime;
+	
+	        event.callback({ playbackTime: _playbackTime, args: args });
+	      }
+	
+	      this.playbackTime = playbackTime;
+	      this.emit("processed", { playbackTime: playbackTime });
+	    }
+	  }, {
+	    key: "state",
+	    get: function get() {
+	      return this._timerId !== 0 ? "running" : "suspended";
+	    }
+	  }, {
+	    key: "currentTime",
+	    get: function get() {
+	      return this.context.currentTime;
+	    }
+	  }, {
+	    key: "events",
+	    get: function get() {
+	      return this._scheds.slice();
+	    }
+	  }]);
+	
+	  return WebAudioScheduler;
+	}(events.EventEmitter);
+	
+	module.exports = WebAudioScheduler;
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 197 */
+/***/ function(module, exports) {
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+	
+	function EventEmitter() {
+	  this._events = this._events || {};
+	  this._maxListeners = this._maxListeners || undefined;
+	}
+	module.exports = EventEmitter;
+	
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+	
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._maxListeners = undefined;
+	
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	EventEmitter.defaultMaxListeners = 10;
+	
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function(n) {
+	  if (!isNumber(n) || n < 0 || isNaN(n))
+	    throw TypeError('n must be a positive number');
+	  this._maxListeners = n;
+	  return this;
+	};
+	
+	EventEmitter.prototype.emit = function(type) {
+	  var er, handler, len, args, i, listeners;
+	
+	  if (!this._events)
+	    this._events = {};
+	
+	  // If there is no 'error' event listener then throw.
+	  if (type === 'error') {
+	    if (!this._events.error ||
+	        (isObject(this._events.error) && !this._events.error.length)) {
+	      er = arguments[1];
+	      if (er instanceof Error) {
+	        throw er; // Unhandled 'error' event
+	      } else {
+	        // At least give some kind of context to the user
+	        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+	        err.context = er;
+	        throw err;
+	      }
+	    }
+	  }
+	
+	  handler = this._events[type];
+	
+	  if (isUndefined(handler))
+	    return false;
+	
+	  if (isFunction(handler)) {
+	    switch (arguments.length) {
+	      // fast cases
+	      case 1:
+	        handler.call(this);
+	        break;
+	      case 2:
+	        handler.call(this, arguments[1]);
+	        break;
+	      case 3:
+	        handler.call(this, arguments[1], arguments[2]);
+	        break;
+	      // slower
+	      default:
+	        args = Array.prototype.slice.call(arguments, 1);
+	        handler.apply(this, args);
+	    }
+	  } else if (isObject(handler)) {
+	    args = Array.prototype.slice.call(arguments, 1);
+	    listeners = handler.slice();
+	    len = listeners.length;
+	    for (i = 0; i < len; i++)
+	      listeners[i].apply(this, args);
+	  }
+	
+	  return true;
+	};
+	
+	EventEmitter.prototype.addListener = function(type, listener) {
+	  var m;
+	
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+	
+	  if (!this._events)
+	    this._events = {};
+	
+	  // To avoid recursion in the case that type === "newListener"! Before
+	  // adding it to the listeners, first emit "newListener".
+	  if (this._events.newListener)
+	    this.emit('newListener', type,
+	              isFunction(listener.listener) ?
+	              listener.listener : listener);
+	
+	  if (!this._events[type])
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    this._events[type] = listener;
+	  else if (isObject(this._events[type]))
+	    // If we've already got an array, just append.
+	    this._events[type].push(listener);
+	  else
+	    // Adding the second element, need to change to array.
+	    this._events[type] = [this._events[type], listener];
+	
+	  // Check for listener leak
+	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    if (!isUndefined(this._maxListeners)) {
+	      m = this._maxListeners;
+	    } else {
+	      m = EventEmitter.defaultMaxListeners;
+	    }
+	
+	    if (m && m > 0 && this._events[type].length > m) {
+	      this._events[type].warned = true;
+	      console.error('(node) warning: possible EventEmitter memory ' +
+	                    'leak detected. %d listeners added. ' +
+	                    'Use emitter.setMaxListeners() to increase limit.',
+	                    this._events[type].length);
+	      if (typeof console.trace === 'function') {
+	        // not supported in IE 10
+	        console.trace();
+	      }
+	    }
+	  }
+	
+	  return this;
+	};
+	
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+	
+	EventEmitter.prototype.once = function(type, listener) {
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+	
+	  var fired = false;
+	
+	  function g() {
+	    this.removeListener(type, g);
+	
+	    if (!fired) {
+	      fired = true;
+	      listener.apply(this, arguments);
+	    }
+	  }
+	
+	  g.listener = listener;
+	  this.on(type, g);
+	
+	  return this;
+	};
+	
+	// emits a 'removeListener' event iff the listener was removed
+	EventEmitter.prototype.removeListener = function(type, listener) {
+	  var list, position, length, i;
+	
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+	
+	  if (!this._events || !this._events[type])
+	    return this;
+	
+	  list = this._events[type];
+	  length = list.length;
+	  position = -1;
+	
+	  if (list === listener ||
+	      (isFunction(list.listener) && list.listener === listener)) {
+	    delete this._events[type];
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+	
+	  } else if (isObject(list)) {
+	    for (i = length; i-- > 0;) {
+	      if (list[i] === listener ||
+	          (list[i].listener && list[i].listener === listener)) {
+	        position = i;
+	        break;
+	      }
+	    }
+	
+	    if (position < 0)
+	      return this;
+	
+	    if (list.length === 1) {
+	      list.length = 0;
+	      delete this._events[type];
+	    } else {
+	      list.splice(position, 1);
+	    }
+	
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+	  }
+	
+	  return this;
+	};
+	
+	EventEmitter.prototype.removeAllListeners = function(type) {
+	  var key, listeners;
+	
+	  if (!this._events)
+	    return this;
+	
+	  // not listening for removeListener, no need to emit
+	  if (!this._events.removeListener) {
+	    if (arguments.length === 0)
+	      this._events = {};
+	    else if (this._events[type])
+	      delete this._events[type];
+	    return this;
+	  }
+	
+	  // emit removeListener for all listeners on all events
+	  if (arguments.length === 0) {
+	    for (key in this._events) {
+	      if (key === 'removeListener') continue;
+	      this.removeAllListeners(key);
+	    }
+	    this.removeAllListeners('removeListener');
+	    this._events = {};
+	    return this;
+	  }
+	
+	  listeners = this._events[type];
+	
+	  if (isFunction(listeners)) {
+	    this.removeListener(type, listeners);
+	  } else if (listeners) {
+	    // LIFO order
+	    while (listeners.length)
+	      this.removeListener(type, listeners[listeners.length - 1]);
+	  }
+	  delete this._events[type];
+	
+	  return this;
+	};
+	
+	EventEmitter.prototype.listeners = function(type) {
+	  var ret;
+	  if (!this._events || !this._events[type])
+	    ret = [];
+	  else if (isFunction(this._events[type]))
+	    ret = [this._events[type]];
+	  else
+	    ret = this._events[type].slice();
+	  return ret;
+	};
+	
+	EventEmitter.prototype.listenerCount = function(type) {
+	  if (this._events) {
+	    var evlistener = this._events[type];
+	
+	    if (isFunction(evlistener))
+	      return 1;
+	    else if (evlistener)
+	      return evlistener.length;
+	  }
+	  return 0;
+	};
+	
+	EventEmitter.listenerCount = function(emitter, type) {
+	  return emitter.listenerCount(type);
+	};
+	
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+	
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+	
+	function isObject(arg) {
+	  return typeof arg === 'object' && arg !== null;
+	}
+	
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
+
+
+/***/ },
+/* 198 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	function defaults(value, defaultValue) {
+	  return value !== undefined ? value : defaultValue;
+	}
+	
+	module.exports = defaults;
+
+/***/ },
+/* 199 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	module.exports = {
+	  get currentTime() {
+	    return Date.now() / 1000;
+	  }
+	};
 
 /***/ }
 /******/ ]);

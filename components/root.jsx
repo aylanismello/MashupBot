@@ -1,31 +1,43 @@
 import React from 'react';
 import loader  from 'webaudio-buffer-loader';
 import Slider from './slider';
-import Yo from './yo';
+import ReactSlider from './react_slider';
+import ProgressCircle from './progress_circle';
+import WebAudioScheduler from 'web-audio-scheduler';
 
 const path = './stems';
-const bpm = 320.0;
-const spb = 60.0 / bpm;
+const bpm = 60;
+
+const TimeSlices = {
+	FOUR: 4,
+	EIGHT: 8,
+	SIXTEEN: 16,
+	THIRTYTWO: 32
+};
 
 class Root extends React.Component {
 
 	constructor(props) {
+
 		super(props);
-
-
 		this.state = {
 			note: 0,
 			loaded: false
 		};
 
+
+		this.createAudioPipeline = this.createAudioPipeline.bind(this);
 		this.contxt = new AudioContext();
-		this.sources = [];
+	  this.sched = new WebAudioScheduler({ context: this.contxt });
+		this.channels = [];
+		this.startMetronome = this.startMetronome.bind(this);
+		this.metronome = this.metronome.bind(this);
 		this.createAudioPipeline();
 
-		// this.createMetronome();
 	}
 
-	createSource(buffer, channelName) {
+
+	createChannel(buffer, channelName) {
 		let source = this.contxt.createBufferSource();
 		source.buffer = buffer;
 		source.loop = true;
@@ -57,26 +69,31 @@ class Root extends React.Component {
 
 		loader(buffers, this.contxt, (err, loadedBuffers) => {
 			loadedBuffers.forEach((buffer, idx) => {
-				this.sources.push(this.createSource(buffer, buffers[idx]));
+				this.channels.push(this.createChannel(buffer, buffers[idx]));
 			});
 
-			this.sources.forEach(source => source.source.start(0));
+			this.channels.forEach(channel => {
+				channel.setGain(0);
+				channel.source.start(0);
+			});
 
 			this.setState({loaded: true});
-			window.sources = this.sources;
+			this.createMetronome(TimeSlices.FOUR);
+			// this.createMetronome(TimeSlices.EIGHT);
+			// this.createMetronome(TimeSlices.SIXTEEN);
+			// this.createMetronome(TimeSlices.THIRTYTWO);
+			window.channels = this.channels;
 		});
 
 	}
 
-	createMetronome() {
 
-				let sixteenthNote = 0;
 
-				let intervalID = window.setInterval(() => {
+	createMetronome(timeSlice) {
+		let bpmMultiplier = Math.log2(timeSlice/2);
+		const spb = 60.0 / (bpm * bpmMultiplier);
+		let startTime = this.contxt.currentTime;
 
-					this.setState({note: (sixteenthNote++ % 16)});
-
-				}, (spb * 1000));
 
 	}
 
@@ -87,21 +104,36 @@ class Root extends React.Component {
 	}
 
 
+	metronome(e) {
+		let t0 = e.playbackTime;
+		console.log(`starting metronome at ${e.playbackTime}`);
+		this.sched.insert(t0 + 2.000, this.metronome);
+	}
+
+	tick(e) {
+		// let t0 = e.play
+	}
+
+	startMetronome() {
+		// console.log('FO SHO');
+		this.sched.start(this.metronome);
+	}
+
 	render() {
 
 		if (this.state.loaded){
 			return (
 				<div>
-					{this.sources.map(source => {
+					{this.channels.map(channel => {
 						return (
 							<div>
-							<Yo setGain={source.setGain}/>
-							{/* <Slider setGain={source.setGain}/> */}
-							{source.channelName}
+							<ReactSlider setGain={channel.setGain}/>
+							{channel.channelName}
 							</div>
 						);
 					})}
 
+					<button onClick={this.startMetronome} value="start">START</button>
 				</div>
 			);
 	 	} else {

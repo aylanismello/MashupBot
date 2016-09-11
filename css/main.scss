@@ -31,11 +31,13 @@ p {
   color: #90A4AE;
 }
 
+
+
 .Slider {
   &:hover {
     cursor: pointer;
   }
-  
+
   display: block;
   width: 5rem;
   height: 5rem;
@@ -54,4 +56,10 @@ p {
     stroke-dashoffset: 0;
     stroke-dasharray: 0;
   }
+}
+
+#prog {
+  margin: 20px;
+  width: 200px;
+  height: 200px;
 }

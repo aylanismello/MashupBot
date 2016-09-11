@@ -1,10 +1,10 @@
 import React from 'react';
 
-class Yo extends React.Component {
+class ReactSlider extends React.Component {
 
 	constructor(props) {
 		super(props);
-	  this.state = { value: 0.6 };
+	  this.state = { value: 0 };
 		this.handleChange = this.handleChange.bind(this);
 		this.setGain = this.props.setGain;
 	}
@@ -140,4 +140,4 @@ class Slider extends React.Component {
   }
 }
 
-export default Yo;
+export default ReactSlider;
