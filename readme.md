@@ -17,7 +17,7 @@ on the spot.
 
 ### Wireframes
 
-![loopy](./docs/loopy.png)
+![loopy](/docs/loopy.png)
 
 ### Architecture and Technologies
 This project will be implemented with these technologies:
