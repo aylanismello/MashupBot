@@ -21460,7 +21460,7 @@
 	
 	var _slider2 = _interopRequireDefault(_slider);
 	
-	var _react_slider = __webpack_require__(193);
+	var _react_slider = __webpack_require__(177);
 	
 	var _react_slider2 = _interopRequireDefault(_react_slider);
 	
@@ -21468,7 +21468,7 @@
 	
 	var _progress_circle2 = _interopRequireDefault(_progress_circle);
 	
-	var _webAudioScheduler = __webpack_require__(194);
+	var _webAudioScheduler = __webpack_require__(179);
 	
 	var _webAudioScheduler2 = _interopRequireDefault(_webAudioScheduler);
 	
@@ -21481,7 +21481,6 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var path = './stems';
-	var bpm = 80;
 	
 	var TimeSlices = {
 		FOUR: 4,
@@ -21489,6 +21488,9 @@
 		SIXTEEN: 16,
 		THIRTYTWO: 32
 	};
+	
+	var bpm = 160;
+	var TIME_SLICE = 32;
 	
 	var Root = function (_React$Component) {
 		_inherits(Root, _React$Component);
@@ -21508,6 +21510,8 @@
 	
 			var canvas = document.querySelector("#can");
 			var ctx = canvas.getContext("2d");
+			ctx.lineWidth = 15;
+			ctx.strokeStyle = "#59b2a1";
 			var max = 2 * Math.PI;
 	
 			_this.circle = {
@@ -21519,13 +21523,19 @@
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
 			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
 			_this.contxt = new AudioContext();
+	
+			_this.masterGain = _this.contxt.createGain();
+			_this.masterGain.connect(_this.contxt.destination);
+	
 			_this.sched = new _webAudioScheduler2.default({ context: _this.contxt });
 			_this.channels = [];
 			_this.startMetronome = _this.startMetronome.bind(_this);
 			_this.metronome = _this.metronome.bind(_this);
 			_this.handleUser = _this.handleUser.bind(_this);
 			_this.tick = _this.tick.bind(_this);
+			_this.stopMetronome = _this.stopMetronome.bind(_this);
 			_this.createAudioPipeline();
+			_this.setMasterGain = _this.setMasterGain.bind(_this);
 	
 			return _this;
 		}
@@ -21533,10 +21543,17 @@
 		_createClass(Root, [{
 			key: 'drawAtRad',
 			value: function drawAtRad(startingRadian, strokeLength) {
+				var restart = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 	
-				this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+	
+				if (restart) {
+					this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+				}
 				this.circle.ctx.beginPath();
 				this.circle.ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+				this.circle.ctx.fillStyle = "black";
+				this.circle.ctx.fill();
+	
 				this.circle.ctx.stroke();
 			}
 		}, {
@@ -21547,7 +21564,7 @@
 				source.loop = true;
 				var gainNode = this.contxt.createGain();
 				source.connect(gainNode);
-				gainNode.connect(this.contxt.destination);
+				gainNode.connect(this.masterGain);
 	
 				return {
 					source: source,
@@ -21584,11 +21601,11 @@
 				// debugger;
 	
 	
-				for (var step = 0; step <= TimeSlices.FOUR; step++) {
+				for (var step = 0; step <= TIME_SLICE; step++) {
 					var schedStartTime = t0 + this.spb * step;
 	
-					if (step === TimeSlices.FOUR) {
-						this.sched.insert(t0 + this.spb * TimeSlices.FOUR, this.metronome);
+					if (step === TIME_SLICE) {
+						this.sched.insert(t0 + this.spb * TIME_SLICE, this.metronome);
 					} else {
 						this.sched.insert(schedStartTime, this.tick, { beat: step });
 					}
@@ -21606,11 +21623,19 @@
 			value: function tick(e) {
 				console.log('tick ' + e.playbackTime + ' and beat ' + e.args.beat);
 	
-				var arcSize = this.circle.max / 4.0;
-				var startingRad = e.args.beat / 4.0 * this.circle.max;
+				var arcSize = this.circle.max / (TIME_SLICE * 1.0);
 	
+				// let startingRad = (e.args.beat / (TIME_SLICE * 1.0 * this.circle.max) );
+				var startingRad = this.circle.max / TIME_SLICE * e.args.beat;
+	
+				console.log('startingRad: ' + startingRad);
 				// let endRad = startingRad + arcSize;
-				this.drawAtRad(startingRad, arcSize);
+				if (e.args.beat === TIME_SLICE - 1) {
+					this.drawAtRad(startingRad, arcSize, true);
+				} else {
+					this.drawAtRad(startingRad, arcSize);
+				}
+	
 				// let t0 = e.play
 			}
 		}, {
@@ -21618,6 +21643,7 @@
 			value: function handleUser() {
 				if (this.state.playing) {
 					console.log('stop');
+					this.stopMetronome();
 				} else {
 					this.startMetronome();
 				}
@@ -21626,7 +21652,7 @@
 			key: 'startMetronome',
 			value: function startMetronome() {
 				// console.log('FO SHO');
-				var timeSlice = TimeSlices.FOUR;
+				var timeSlice = TIME_SLICE;
 				var bpmMultiplier = Math.log2(timeSlice / 2);
 				var spb = 60.0 / (bpm * bpmMultiplier);
 				this.spb = spb;
@@ -21636,6 +21662,17 @@
 					channel.source.start(0);
 				});
 				this.sched.start(this.metronome);
+			}
+		}, {
+			key: 'stopMetronome',
+			value: function stopMetronome() {
+				this.sched.stop(true);
+				this.setMasterGain(0);
+			}
+		}, {
+			key: 'setMasterGain',
+			value: function setMasterGain(gain) {
+				this.masterGain.gain.value = gain;
 			}
 		}, {
 			key: 'render',
@@ -21655,6 +21692,7 @@
 								channel.channelName
 							);
 						}),
+						_react2.default.createElement(_react_slider2.default, { setGain: this.setMasterGain }),
 						_react2.default.createElement(
 							'button',
 							{ onClick: this.handleUser },
@@ -22994,7 +23032,216 @@
 	exports.default = Slider;
 
 /***/ },
-/* 177 */,
+/* 177 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ReactSlider = function (_React$Component) {
+	  _inherits(ReactSlider, _React$Component);
+	
+	  function ReactSlider(props) {
+	    _classCallCheck(this, ReactSlider);
+	
+	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
+	
+	    _this.state = { value: 0 };
+	    _this.handleChange = _this.handleChange.bind(_this);
+	    _this.setGain = _this.props.setGain;
+	    return _this;
+	  }
+	
+	  _createClass(ReactSlider, [{
+	    key: "handleChange",
+	    value: function handleChange(x, y) {
+	      this.setState({ value: y });
+	      this.setGain(y);
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      return _react2.default.createElement(
+	        "div",
+	        null,
+	        _react2.default.createElement(Slider, {
+	          radius: 140,
+	          border: 70,
+	          value: this.state.value,
+	          onChange: this.handleChange })
+	      );
+	    }
+	  }]);
+	
+	  return ReactSlider;
+	}(_react2.default.Component);
+	
+	var Slider = function (_React$Component2) {
+	  _inherits(Slider, _React$Component2);
+	
+	  function Slider(props) {
+	    _classCallCheck(this, Slider);
+	
+	    var _this2 = _possibleConstructorReturn(this, (Slider.__proto__ || Object.getPrototypeOf(Slider)).call(this, props));
+	
+	    _this2.state = { isPinching: false };
+	    _this2.handleMouseUp = _this2.handleMouseUp.bind(_this2);
+	    _this2.handleMouseDown = _this2.handleMouseDown.bind(_this2);
+	    _this2.handleMouseMove = _this2.handleMouseMove.bind(_this2);
+	
+	    return _this2;
+	  }
+	
+	  _createClass(Slider, [{
+	    key: "componentDidMount",
+	    value: function componentDidMount() {
+	      this.x = 0;
+	      this.y = 0;
+	
+	      document.addEventListener("mousemove", this.handleMouseMove);
+	      document.addEventListener("mouseup", this.handleMouseUp);
+	    }
+	  }, {
+	    key: "componentWillUnmount",
+	    value: function componentWillUnmount() {
+	      document.removeEventListener("mousemove", this.handleMouseMove);
+	      document.removeEventListener("mouseup", this.handleMouseUp);
+	    }
+	  }, {
+	    key: "handleMouseUp",
+	    value: function handleMouseUp() {
+	      this.setState({ isPinching: false });
+	    }
+	  }, {
+	    key: "handleMouseDown",
+	    value: function handleMouseDown(e) {
+	      e.preventDefault();
+	
+	      var _potar$getBoundingCli = this.potar.getBoundingClientRect();
+	
+	      var left = _potar$getBoundingCli.left;
+	      var top = _potar$getBoundingCli.top;
+	      var width = _potar$getBoundingCli.width;
+	      var height = _potar$getBoundingCli.height;
+	
+	
+	      this.x = e.pageX - (left + width / 2);
+	      this.y = top + height / 2 - e.pageY;
+	
+	      this.setState({ isPinching: true });
+	    }
+	  }, {
+	    key: "handleMouseMove",
+	    value: function handleMouseMove(e) {
+	      if (this.state.isPinching) {
+	        var _potar$getBoundingCli2 = this.potar.getBoundingClientRect();
+	
+	        var left = _potar$getBoundingCli2.left;
+	        var top = _potar$getBoundingCli2.top;
+	        var width = _potar$getBoundingCli2.width;
+	        var height = _potar$getBoundingCli2.height;
+	
+	
+	        var x = e.pageX - (left + width / 2);
+	        var y = top + height / 2 - e.pageY;
+	
+	        var dx = (x - this.x) / 100;
+	        var dy = (y - this.y) / 100;
+	
+	        this.x = x;
+	        this.y = y;
+	
+	        if (this.props.onChange) {
+	          var xValue = this.props.value + dx;
+	          var yValue = this.props.value + dy;
+	          if (xValue < 0) {
+	            xValue = 0;
+	          }
+	
+	          if (xValue > 1) {
+	            xValue = 1;
+	          }
+	
+	          if (yValue < 0) {
+	            yValue = 0;
+	          }
+	
+	          if (yValue > 1) {
+	            yValue = 1;
+	          }
+	
+	          this.props.onChange(xValue, yValue);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      var _this3 = this;
+	
+	      var _props = this.props;
+	      var radius = _props.radius;
+	      var border = _props.border;
+	      var value = _props.value;
+	
+	      var p = 2 * Math.PI * (radius - border / 2);
+	
+	      var strokeWidth = border;
+	      var strokeDashoffset = p * (1 - value);
+	      var strokeDasharray = p;
+	
+	      return _react2.default.createElement(
+	        "svg",
+	        {
+	          className: "Slider",
+	          ref: function ref(potar) {
+	            _this3.potar = potar;
+	          },
+	          viewBox: "0 0 " + radius * 2 + " " + radius * 2,
+	          onMouseDown: this.handleMouseDown },
+	        _react2.default.createElement("circle", {
+	          className: "Slider-circle",
+	          style: { strokeWidth: strokeWidth },
+	          r: radius - border / 2,
+	          cx: radius,
+	          cy: radius }),
+	        _react2.default.createElement("circle", {
+	          className: "Slider-bar",
+	          style: {
+	            strokeWidth: strokeWidth,
+	            strokeDashoffset: strokeDashoffset,
+	            strokeDasharray: strokeDasharray
+	          },
+	          r: radius - border / 2,
+	          cx: radius,
+	          cy: radius })
+	      );
+	    }
+	  }]);
+	
+	  return Slider;
+	}(_react2.default.Component);
+	
+	exports.default = ReactSlider;
+
+/***/ },
 /* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -23581,246 +23828,22 @@
 	exports.default = ProgressCircle;
 
 /***/ },
-/* 179 */,
-/* 180 */,
-/* 181 */,
-/* 182 */,
-/* 183 */,
-/* 184 */,
-/* 185 */,
-/* 186 */,
-/* 187 */,
-/* 188 */,
-/* 189 */,
-/* 190 */,
-/* 191 */,
-/* 192 */,
-/* 193 */
+/* 179 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(180);
+
+
+/***/ },
+/* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var ReactSlider = function (_React$Component) {
-	  _inherits(ReactSlider, _React$Component);
-	
-	  function ReactSlider(props) {
-	    _classCallCheck(this, ReactSlider);
-	
-	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
-	
-	    _this.state = { value: 0 };
-	    _this.handleChange = _this.handleChange.bind(_this);
-	    _this.setGain = _this.props.setGain;
-	    return _this;
-	  }
-	
-	  _createClass(ReactSlider, [{
-	    key: "handleChange",
-	    value: function handleChange(x, y) {
-	      this.setState({ value: y });
-	      this.setGain(y);
-	    }
-	  }, {
-	    key: "render",
-	    value: function render() {
-	      return _react2.default.createElement(
-	        "div",
-	        null,
-	        _react2.default.createElement(Slider, {
-	          radius: 140,
-	          border: 70,
-	          value: this.state.value,
-	          onChange: this.handleChange })
-	      );
-	    }
-	  }]);
-	
-	  return ReactSlider;
-	}(_react2.default.Component);
-	
-	var Slider = function (_React$Component2) {
-	  _inherits(Slider, _React$Component2);
-	
-	  function Slider(props) {
-	    _classCallCheck(this, Slider);
-	
-	    var _this2 = _possibleConstructorReturn(this, (Slider.__proto__ || Object.getPrototypeOf(Slider)).call(this, props));
-	
-	    _this2.state = { isPinching: false };
-	    _this2.handleMouseUp = _this2.handleMouseUp.bind(_this2);
-	    _this2.handleMouseDown = _this2.handleMouseDown.bind(_this2);
-	    _this2.handleMouseMove = _this2.handleMouseMove.bind(_this2);
-	
-	    return _this2;
-	  }
-	
-	  _createClass(Slider, [{
-	    key: "componentDidMount",
-	    value: function componentDidMount() {
-	      this.x = 0;
-	      this.y = 0;
-	
-	      document.addEventListener("mousemove", this.handleMouseMove);
-	      document.addEventListener("mouseup", this.handleMouseUp);
-	    }
-	  }, {
-	    key: "componentWillUnmount",
-	    value: function componentWillUnmount() {
-	      document.removeEventListener("mousemove", this.handleMouseMove);
-	      document.removeEventListener("mouseup", this.handleMouseUp);
-	    }
-	  }, {
-	    key: "handleMouseUp",
-	    value: function handleMouseUp() {
-	      this.setState({ isPinching: false });
-	    }
-	  }, {
-	    key: "handleMouseDown",
-	    value: function handleMouseDown(e) {
-	      e.preventDefault();
-	
-	      var _potar$getBoundingCli = this.potar.getBoundingClientRect();
-	
-	      var left = _potar$getBoundingCli.left;
-	      var top = _potar$getBoundingCli.top;
-	      var width = _potar$getBoundingCli.width;
-	      var height = _potar$getBoundingCli.height;
-	
-	
-	      this.x = e.pageX - (left + width / 2);
-	      this.y = top + height / 2 - e.pageY;
-	
-	      this.setState({ isPinching: true });
-	    }
-	  }, {
-	    key: "handleMouseMove",
-	    value: function handleMouseMove(e) {
-	      if (this.state.isPinching) {
-	        var _potar$getBoundingCli2 = this.potar.getBoundingClientRect();
-	
-	        var left = _potar$getBoundingCli2.left;
-	        var top = _potar$getBoundingCli2.top;
-	        var width = _potar$getBoundingCli2.width;
-	        var height = _potar$getBoundingCli2.height;
-	
-	
-	        var x = e.pageX - (left + width / 2);
-	        var y = top + height / 2 - e.pageY;
-	
-	        var dx = (x - this.x) / 100;
-	        var dy = (y - this.y) / 100;
-	
-	        this.x = x;
-	        this.y = y;
-	
-	        if (this.props.onChange) {
-	          var xValue = this.props.value + dx;
-	          var yValue = this.props.value + dy;
-	          if (xValue < 0) {
-	            xValue = 0;
-	          }
-	
-	          if (xValue > 1) {
-	            xValue = 1;
-	          }
-	
-	          if (yValue < 0) {
-	            yValue = 0;
-	          }
-	
-	          if (yValue > 1) {
-	            yValue = 1;
-	          }
-	
-	          this.props.onChange(xValue, yValue);
-	        }
-	      }
-	    }
-	  }, {
-	    key: "render",
-	    value: function render() {
-	      var _this3 = this;
-	
-	      var _props = this.props;
-	      var radius = _props.radius;
-	      var border = _props.border;
-	      var value = _props.value;
-	
-	      var p = 2 * Math.PI * (radius - border / 2);
-	
-	      var strokeWidth = border;
-	      var strokeDashoffset = p * (1 - value);
-	      var strokeDasharray = p;
-	
-	      return _react2.default.createElement(
-	        "svg",
-	        {
-	          className: "Slider",
-	          ref: function ref(potar) {
-	            _this3.potar = potar;
-	          },
-	          viewBox: "0 0 " + radius * 2 + " " + radius * 2,
-	          onMouseDown: this.handleMouseDown },
-	        _react2.default.createElement("circle", {
-	          className: "Slider-circle",
-	          style: { strokeWidth: strokeWidth },
-	          r: radius - border / 2,
-	          cx: radius,
-	          cy: radius }),
-	        _react2.default.createElement("circle", {
-	          className: "Slider-bar",
-	          style: {
-	            strokeWidth: strokeWidth,
-	            strokeDashoffset: strokeDashoffset,
-	            strokeDasharray: strokeDasharray
-	          },
-	          r: radius - border / 2,
-	          cx: radius,
-	          cy: radius })
-	      );
-	    }
-	  }]);
-	
-	  return Slider;
-	}(_react2.default.Component);
-	
-	exports.default = ReactSlider;
+	module.exports = __webpack_require__(181);
 
 /***/ },
-/* 194 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(195);
-
-
-/***/ },
-/* 195 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	module.exports = __webpack_require__(196);
-
-/***/ },
-/* 196 */
+/* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {"use strict";
@@ -23833,9 +23856,9 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var events = __webpack_require__(197);
-	var defaults = __webpack_require__(198);
-	var defaultContext = __webpack_require__(199);
+	var events = __webpack_require__(182);
+	var defaults = __webpack_require__(183);
+	var defaultContext = __webpack_require__(184);
 	
 	var WebAudioScheduler = function (_events$EventEmitter) {
 	  _inherits(WebAudioScheduler, _events$EventEmitter);
@@ -24002,7 +24025,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 197 */
+/* 182 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -24310,7 +24333,7 @@
 
 
 /***/ },
-/* 198 */
+/* 183 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -24322,7 +24345,7 @@
 	module.exports = defaults;
 
 /***/ },
-/* 199 */
+/* 184 */
 /***/ function(module, exports) {
 
 	"use strict";

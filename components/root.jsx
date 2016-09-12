@@ -6,7 +6,6 @@ import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
 
 const path = './stems';
-const bpm = 80;
 
 const TimeSlices = {
 	FOUR: 4,
@@ -15,12 +14,14 @@ const TimeSlices = {
 	THIRTYTWO: 32
 };
 
+const bpm = 160;
+const TIME_SLICE = 32;
+
 class Root extends React.Component {
 
 	constructor(props) {
 
 		const timeSlice = TimeSlices.THIRTYTWO;
-
 		super(props);
 		this.state = {
 			note: 0,
@@ -30,6 +31,8 @@ class Root extends React.Component {
 
 		let canvas = document.querySelector("#can");
 		let ctx = canvas.getContext("2d");
+		ctx.lineWidth = 15;
+		ctx.strokeStyle = "#59b2a1";
 		let max = 2 * Math.PI;
 
 		this.circle = {
@@ -41,13 +44,19 @@ class Root extends React.Component {
 		this.drawAtRad = this.drawAtRad.bind(this);
 		this.createAudioPipeline = this.createAudioPipeline.bind(this);
 		this.contxt = new AudioContext();
+
+		this.masterGain = this.contxt.createGain();
+		this.masterGain.connect(this.contxt.destination);
+
 	  this.sched = new WebAudioScheduler({ context: this.contxt });
 		this.channels = [];
 		this.startMetronome = this.startMetronome.bind(this);
 		this.metronome = this.metronome.bind(this);
 		this.handleUser = this.handleUser.bind(this);
 		this.tick = this.tick.bind(this);
+		this.stopMetronome = this.stopMetronome.bind(this);
 		this.createAudioPipeline();
+		this.setMasterGain = this.setMasterGain.bind(this);
 
 
 
@@ -56,11 +65,16 @@ class Root extends React.Component {
 
 
 
-	drawAtRad(startingRadian, strokeLength) {
+	drawAtRad(startingRadian, strokeLength, restart=false) {
 
-		this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+		if(restart){
+			this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+		}
 		this.circle.ctx.beginPath();
 		this.circle.ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+		this.circle.ctx.fillStyle = "black";
+		this.circle.ctx.fill();
+
 		this.circle.ctx.stroke();
 
 
@@ -73,7 +87,7 @@ class Root extends React.Component {
 		source.loop = true;
 		let gainNode = this.contxt.createGain();
 		source.connect(gainNode);
-		gainNode.connect(this.contxt.destination);
+		gainNode.connect(this.masterGain);
 
 		return {
 			source,
@@ -121,11 +135,11 @@ class Root extends React.Component {
 
 
 
-		for (var step = 0; step <= TimeSlices.FOUR; step++) {
+		for (var step = 0; step <= TIME_SLICE; step++) {
 			let schedStartTime = t0 + (this.spb * step);
 
-			if (step === TimeSlices.FOUR) {
-				this.sched.insert(t0 + (this.spb * TimeSlices.FOUR), this.metronome);
+			if (step === TIME_SLICE) {
+				this.sched.insert(t0 + (this.spb * TIME_SLICE), this.metronome);
 			} else {
 				this.sched.insert(schedStartTime, this.tick, {beat: step});
 			}
@@ -143,11 +157,21 @@ class Root extends React.Component {
 	tick(e) {
 		console.log(`tick ${e.playbackTime} and beat ${e.args.beat}`);
 
-		let arcSize = (this.circle.max / 4.0);
-		let startingRad = (e.args.beat / 4.0) * this.circle.max;
+		let arcSize = (this.circle.max / (TIME_SLICE * 1.0));
 
+		// let startingRad = (e.args.beat / (TIME_SLICE * 1.0 * this.circle.max) );
+		let startingRad = ((this.circle.max / TIME_SLICE ) * e.args.beat);
+
+		console.log(`startingRad: ${startingRad}`);
 		// let endRad = startingRad + arcSize;
-		this.drawAtRad(startingRad, arcSize);
+		if(e.args.beat === (TIME_SLICE - 1)) {
+			this.drawAtRad(startingRad, arcSize, true);
+		} else {
+			this.drawAtRad(startingRad, arcSize);
+
+		}
+
+
 		// let t0 = e.play
 	}
 
@@ -155,6 +179,7 @@ class Root extends React.Component {
 	handleUser() {
 		if (this.state.playing) {
 			console.log('stop');
+			this.stopMetronome();
 		} else {
 			this.startMetronome();
 		}
@@ -162,7 +187,7 @@ class Root extends React.Component {
 
 	startMetronome() {
 		// console.log('FO SHO');
-		let timeSlice = TimeSlices.FOUR;
+		let timeSlice = TIME_SLICE;
 		let bpmMultiplier = Math.log2(timeSlice/2);
 		const spb = 60.0 / (bpm * bpmMultiplier);
 		this.spb = spb;
@@ -175,6 +200,14 @@ class Root extends React.Component {
 
 	}
 
+	stopMetronome () {
+  	this.sched.stop(true);
+		this.setMasterGain(0);
+  }
+
+	setMasterGain(gain) {
+		this.masterGain.gain.value = gain;
+	}
 
 	render() {
 
@@ -191,6 +224,9 @@ class Root extends React.Component {
 							</div>
 						);
 					})}
+
+
+						<ReactSlider setGain={this.setMasterGain}/>
 
 					<button onClick={this.handleUser} >{playerText}</button>
 				</div>

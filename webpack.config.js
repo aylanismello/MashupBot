@@ -1,5 +1,4 @@
 var path = require("path");
-require('react-progress-bar-plus/lib/progress-bar.css');
 
 module.exports = {
   context: __dirname,
