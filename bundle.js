@@ -21481,6 +21481,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var path = './stems';
+	var beatsPath = './stems/beats';
 	
 	var TimeSlices = {
 		FOUR: 4,
@@ -21534,8 +21535,10 @@
 			_this.handleUser = _this.handleUser.bind(_this);
 			_this.tick = _this.tick.bind(_this);
 			_this.stopMetronome = _this.stopMetronome.bind(_this);
-			_this.createAudioPipeline();
 			_this.setMasterGain = _this.setMasterGain.bind(_this);
+			_this.switchTrack = _this.switchTrack.bind(_this);
+	
+			_this.createAudioPipeline();
 	
 			return _this;
 		}
@@ -21557,19 +21560,20 @@
 				this.circle.ctx.stroke();
 			}
 		}, {
-			key: 'createChannel',
-			value: function createChannel(buffer, channelName) {
+			key: 'createSubChannel',
+			value: function createSubChannel(buffer, pathName, channelGainNode) {
 				var source = this.contxt.createBufferSource();
 				source.buffer = buffer;
 				source.loop = true;
 				var gainNode = this.contxt.createGain();
 				source.connect(gainNode);
-				gainNode.connect(this.masterGain);
+				gainNode.connect(channelGainNode);
+				channelGainNode.connect(this.masterGain);
 	
 				return {
 					source: source,
 					gainNode: gainNode,
-					channelName: channelName,
+					pathName: pathName,
 					setGain: function setGain(gain) {
 						gainNode.gain.value = gain;
 					}
@@ -21580,24 +21584,40 @@
 			value: function createAudioPipeline() {
 				var _this2 = this;
 	
+				var beatsBuffers = [beatsPath + '/express_yourself.wav', beatsPath + '/rollup.wav', beatsPath + '/so_fresh.wav'];
+	
 				var buffers = [path + '/beat.wav', path + '/acapella.wav', path + '/melody.wav'];
+	
 				this.buffers = buffers;
 	
-				(0, _webaudioBufferLoader2.default)(buffers, this.contxt, function (err, loadedBuffers) {
+				var subChannels = [];
+	
+				var channelGainNode = this.contxt.createGain();
+	
+				(0, _webaudioBufferLoader2.default)(beatsBuffers, this.contxt, function (err, loadedBuffers) {
 					loadedBuffers.forEach(function (buffer, idx) {
-						_this2.channels.push(_this2.createChannel(buffer, buffers[idx]));
+						subChannels.push(_this2.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
 					});
+	
+					var beatChannel = {
+						subChannels: subChannels,
+						channelGainNode: channelGainNode,
+						setGain: function setGain(gain) {
+							channelGainNode.gain.value = gain;
+						}
+					};
+					_this2.beatChannel = beatChannel;
 	
 					_this2.setState({ loaded: true });
 	
-					window.channels = _this2.channels;
+					// window.channels = this.channels;
 				});
 			}
 		}, {
 			key: 'metronome',
 			value: function metronome(e) {
 				var t0 = e.playbackTime;
-				console.log('starting metronome at ' + e.playbackTime);
+				// console.log(`starting metronome at ${e.playbackTime}`);
 				// debugger;
 	
 	
@@ -21610,33 +21630,23 @@
 						this.sched.insert(schedStartTime, this.tick, { beat: step });
 					}
 				}
-	
-				// this.sched.insert(t0, this.tick, {beat: 0});
-				// this.sched.insert(t0 + this.spb, this.tick, {beat: 1});
-				// this.sched.insert(t0 + this.spb * 2, this.tick, {beat: 2});
-				// this.sched.insert(t0 + this.spb * 3, this.tick, {beat: 3});
-				// this.sched.insert(t0 + this.spb * 4, this.metronome);
-				//
 			}
 		}, {
 			key: 'tick',
 			value: function tick(e) {
-				console.log('tick ' + e.playbackTime + ' and beat ' + e.args.beat);
+				// console.log(`tick ${e.playbackTime} and beat ${e.args.beat}`);
 	
 				var arcSize = this.circle.max / (TIME_SLICE * 1.0);
 	
-				// let startingRad = (e.args.beat / (TIME_SLICE * 1.0 * this.circle.max) );
 				var startingRad = this.circle.max / TIME_SLICE * e.args.beat;
 	
-				console.log('startingRad: ' + startingRad);
+				// console.log(`startingRad: ${startingRad}`);
 				// let endRad = startingRad + arcSize;
 				if (e.args.beat === TIME_SLICE - 1) {
 					this.drawAtRad(startingRad, arcSize, true);
 				} else {
 					this.drawAtRad(startingRad, arcSize);
 				}
-	
-				// let t0 = e.play
 			}
 		}, {
 			key: 'handleUser',
@@ -21657,7 +21667,7 @@
 				var spb = 60.0 / (bpm * bpmMultiplier);
 				this.spb = spb;
 				this.setState({ playing: true });
-				this.channels.forEach(function (channel) {
+				this.beatChannel.subChannels.forEach(function (channel) {
 					channel.setGain(0.25);
 					channel.source.start(0);
 				});
@@ -21675,8 +21685,30 @@
 				this.masterGain.gain.value = gain;
 			}
 		}, {
+			key: 'switchTrack',
+			value: function switchTrack() {
+				// debugger;
+				// return e => {
+				// let newTrackIdx = e.currentTarget.value;
+				var selectedTrackIdx = arguments[0];
+				var selectedTrack = this.beatChannel.subChannels[selectedTrackIdx];
+	
+				console.log('switching to track ' + selectedTrack);
+				console.log('muting all tracks first');
+				this.muteAllTracks(this.beatChannel.subChannels);
+				selectedTrack.setGain(0.5);
+			}
+		}, {
+			key: 'muteAllTracks',
+			value: function muteAllTracks(subChannels) {
+				subChannels.forEach(function (channel) {
+					channel.setGain(0);
+				});
+			}
+		}, {
 			key: 'render',
 			value: function render() {
+				var _this3 = this;
 	
 				var playerText = this.state.playing ? "STOP" : "START";
 	
@@ -21684,15 +21716,15 @@
 					return _react2.default.createElement(
 						'div',
 						null,
-						this.channels.map(function (channel) {
+						this.beatChannel.subChannels.map(function (subChannel, idx) {
 							return _react2.default.createElement(
 								'div',
 								null,
-								_react2.default.createElement(_react_slider2.default, { setGain: channel.setGain }),
-								channel.channelName
+								_react2.default.createElement(_react_slider2.default, { setGain: subChannel.setGain, idx: idx,
+									switchTrack: _this3.switchTrack }),
+								subChannel.pathName
 							);
 						}),
-						_react2.default.createElement(_react_slider2.default, { setGain: this.setMasterGain }),
 						_react2.default.createElement(
 							'button',
 							{ onClick: this.handleUser },

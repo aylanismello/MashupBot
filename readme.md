@@ -17,7 +17,7 @@ on the spot.
 
 ### Wireframes
 
-![loopy](/docs/loopy.png)
+![loopy](http://evolver.fm/wp-content/uploads/2012/04/loopyhd2.jpg)
 
 ### Architecture and Technologies
 This project will be implemented with these technologies:
