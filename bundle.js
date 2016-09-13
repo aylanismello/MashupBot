@@ -21619,17 +21619,6 @@
 						_this2.channels[buffer] = channel;
 					});
 				});
-	
-				// this.makeChannelFromBuffers(beatBuffers, (channel) => { this.channels.beat = channel;} );
-				// this.makeChannelFromBuffers(melodyBuffers, (channel) => { this.channels.melody = channel;} );
-				// this.makeChannelFromBuffers(acapellaBuffers, (channel) => { this.channels.acapella = channel;} );
-	
-	
-				// this.channels.beat = channels.beat;
-	
-	
-				// });
-	
 			}
 		}, {
 			key: 'makeChannelFromBuffers',
@@ -21654,9 +21643,6 @@
 	
 					setChannel(channel);
 	
-					// debugger;
-	
-					// this.setState({loaded: true});
 					_this3.setState({ buffersLoaded: _this3.state.buffersLoaded + 1 });
 				});
 			}
@@ -21699,15 +21685,25 @@
 		}, {
 			key: 'startMetronome',
 			value: function startMetronome() {
+				var _this4 = this;
+	
 				var timeSlice = TIME_SLICE;
 				var bpmMultiplier = Math.log2(timeSlice / 2);
 				var spb = 60.0 / (bpm * bpmMultiplier);
 				this.spb = spb;
 				this.setState({ playing: true });
-				this.channels.beat.subChannels.forEach(function (channel) {
-					channel.setGain(0.25);
-					channel.source.start(0);
+	
+				Object.keys(this.channels).forEach(function (channel) {
+					_this4.channels[channel].subChannels.forEach(function (track, idx) {
+						if (idx === 0) {
+							track.setGain(0.25);
+						} else {
+							track.setGain(0);
+						}
+						track.source.start(0);
+					});
 				});
+	
 				this.sched.start(this.metronome);
 			}
 		}, {

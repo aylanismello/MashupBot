@@ -156,26 +156,9 @@ class Root extends React.Component {
 		};
 
 
-
-
-
-
 			Object.keys(buffers).forEach(buffer => {
 				this.makeChannelFromBuffers(buffers[buffer], channel => { this.channels[buffer] = channel;} )
 			});
-
-			// this.makeChannelFromBuffers(beatBuffers, (channel) => { this.channels.beat = channel;} );
-			// this.makeChannelFromBuffers(melodyBuffers, (channel) => { this.channels.melody = channel;} );
-			// this.makeChannelFromBuffers(acapellaBuffers, (channel) => { this.channels.acapella = channel;} );
-
-
-
-
-			// this.channels.beat = channels.beat;
-
-
-
-		// });
 
 
 	}
@@ -200,9 +183,6 @@ class Root extends React.Component {
 
 			setChannel(channel);
 
-			// debugger;
-
-			// this.setState({loaded: true});
 			this.setState({buffersLoaded: this.state.buffersLoaded + 1});
 		});
 
@@ -249,10 +229,20 @@ class Root extends React.Component {
 		const spb = 60.0 / (bpm * bpmMultiplier);
 		this.spb = spb;
 		this.setState({playing: true});
-		this.channels.beat.subChannels.forEach(channel => {
-			channel.setGain(0.25);
-			channel.source.start(0);
+
+
+		Object.keys(this.channels).forEach(channel =>{
+			this.channels[channel].subChannels.forEach((track, idx) => {
+				if(idx === 0){
+					track.setGain(0.25);
+				} else {
+					track.setGain(0);
+				}
+				track.source.start(0);
+			});
 		});
+
+
 		this.sched.start(this.metronome);
 
 	}
