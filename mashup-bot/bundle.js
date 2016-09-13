@@ -21585,7 +21585,7 @@
 			value: function createAudioPipeline() {
 				var _this2 = this;
 	
-				var beatsBuffers = [beatsPath + '/express_yourself.wav', beatsPath + '/rollup.wav', beatsPath + '/so_fresh.wav'];
+				var beatsBuffers = [beatsPath + '/backseat.wav', beatsPath + '/yonkers.wav', beatsPath + '/so_fresh.wav'];
 	
 				var buffers = [path + '/beat.wav', path + '/acapella.wav', path + '/melody.wav'];
 	

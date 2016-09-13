@@ -115,8 +115,8 @@ class Root extends React.Component {
 	createAudioPipeline() {
 
 		let beatsBuffers = [
-			`${beatsPath}/express_yourself.wav`,
-			`${beatsPath}/rollup.wav`,
+			`${beatsPath}/backseat.wav`,
+			`${beatsPath}/yonkers.wav`,
 			`${beatsPath}/so_fresh.wav`
 		];
 
@@ -125,8 +125,8 @@ class Root extends React.Component {
 				`${path}/acapella.wav`,
 				`${path}/melody.wav`
 			];
-			
-			debugger;
+
+		debugger;
 
 		this.buffers = buffers;
 
