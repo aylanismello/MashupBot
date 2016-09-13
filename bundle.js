@@ -21572,8 +21572,6 @@
 			key: 'setCanvas',
 			value: function setCanvas(id, idx) {
 	
-				// debugger;
-	
 				var canvas = document.querySelector('#' + id);
 				var ctx = canvas.getContext("2d");
 	
@@ -21587,11 +21585,7 @@
 					max: max
 				};
 	
-				// this.circles.push(circle);
-	
-	
 				this.circles[id] = circle;
-				// debugger;
 			}
 		}, {
 			key: 'drawAtRad',
@@ -21603,13 +21597,10 @@
 	
 				startingRadian -= Math.PI / 2.0;
 	
-				// debugger;
 				Object.keys(this.circles).forEach(function (circleKey) {
 	
 					var circle = _this2.circles[circleKey];
 					var ctx = circle.ctx;
-	
-					// debugger;
 	
 					if (restart) {
 						ctx.clearRect(0, 0, circle.canvas.width, circle.canvas.height);
@@ -21696,9 +21687,6 @@
 					_this5.switchTrack(_this5.channelsToSchedule[channel].nextTrackIdx, _this5.channelsToSchedule[channel].soundCircleId, channel, true);
 				});
 	
-				// this.switchTrack(this.nextTrackIdx, this.nextSoundCircleId, true);
-	
-	
 				for (var step = 0; step <= TIME_SLICE; step++) {
 					var schedStartTime = t0 + this.spb * step;
 					if (step === TIME_SLICE) {
@@ -21775,32 +21763,24 @@
 					channelToSchedule.nextTrackIdx = trackIdx;
 					// debugger;
 					channelToSchedule.soundCircleId = soundCircleId;
-					channelToSchedule.isScheduled = false;
-					// this.nextChannel = channel;
-					// debugger;
-					// return;
+					channelToSchedule.isScheduled = isScheduled;
+	
+					console.log('switching to ' + channelToSchedule.nextTrackIdx);
+					console.log('circle id of ' + channelToSchedule.soundCircleId);
+					console.log('isScheduled? ' + channelToSchedule.isScheduled);
+	
+					console.log('');
+					return;
 				}
 	
 				var selectedTrack = this.channels[channel].subChannels[trackIdx];
-				this.resetAllCircles(this.circles);
-				// debugger;
 	
-				// if (!this.circles[soundCircleId].ctx) {
-				// debugger;
-				// }
+				this.resetAllCircles(this.circles);
 				console.log('received ' + soundCircleId);
 				this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 	
 				this.muteAllTracks(this.channels[channel].subChannels);
 				selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-	
-				// let selectedTrack = this.channels.beat.subChannels[trackIdx];
-				// this.resetAllCircles(this.circles);
-				// this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-				//
-				// this.muteAllTracks(this.channels.beat.subChannels);
-				// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-	
 			}
 		}, {
 			key: 'resetAllCircles',

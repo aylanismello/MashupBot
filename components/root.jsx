@@ -61,7 +61,7 @@ class Root extends React.Component {
 				isScheduled: false,
 				soundCircleId: `melody-0`
 			}
-		}
+		};
 
 		this.circles = {};
 		// this.circles = [];
@@ -99,7 +99,6 @@ class Root extends React.Component {
 
 	setCanvas(id, idx) {
 
-		// debugger;
 
 		let canvas = document.querySelector(`#${id}`);
 		let ctx = canvas.getContext("2d");
@@ -114,11 +113,8 @@ class Root extends React.Component {
 			max
 		};
 
-		// this.circles.push(circle);
-
 
 		this.circles[id] = circle;
-		// debugger;
 	}
 
 
@@ -127,14 +123,10 @@ class Root extends React.Component {
 
 		startingRadian -= Math.PI / 2.0;
 
-
-		// debugger;
 		Object.keys(this.circles).forEach(circleKey => {
 
 			let circle = this.circles[circleKey];
 			let ctx = circle.ctx;
-
-			// debugger;
 
 			if(restart){
 				ctx.clearRect(0, 0, circle.canvas.width, circle.canvas.height);
@@ -166,8 +158,6 @@ class Root extends React.Component {
 			}
 		};
 	}
-
-
 
 
 	createAudioPipeline() {
@@ -235,9 +225,6 @@ class Root extends React.Component {
 					this.channelsToSchedule[channel].soundCircleId, channel,
 						true);
 		});
-
-		// this.switchTrack(this.nextTrackIdx, this.nextSoundCircleId, true);
-
 
 
 
@@ -309,35 +296,25 @@ class Root extends React.Component {
 			channelToSchedule.nextTrackIdx = trackIdx;
 			// debugger;
 			channelToSchedule.soundCircleId = soundCircleId;
-			channelToSchedule.isScheduled = false;
-			// this.nextChannel = channel;
-			// debugger;
-			// return;
+			channelToSchedule.isScheduled = isScheduled;
+
+			console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
+			console.log(`circle id of ${channelToSchedule.soundCircleId}`);
+			console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
+
+			console.log(``);
+			return;
 		}
 
 
 		let selectedTrack = this.channels[channel].subChannels[trackIdx];
-		this.resetAllCircles(this.circles);
-		// debugger;
 
-		// if (!this.circles[soundCircleId].ctx) {
-			// debugger;
-		// }
+		this.resetAllCircles(this.circles);
 		console.log(`received ${soundCircleId}`);
 		this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 
 		this.muteAllTracks(this.channels[channel].subChannels);
 		selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-
-
-
-		// let selectedTrack = this.channels.beat.subChannels[trackIdx];
-		// this.resetAllCircles(this.circles);
-		// this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-		//
-		// this.muteAllTracks(this.channels.beat.subChannels);
-		// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-
 
 	}
 
@@ -345,7 +322,10 @@ class Root extends React.Component {
 		Object.keys(circles).forEach(circle => {
 			circles[circle].ctx.strokeStyle = GREENISH;
 		});
+
+
 	}
+
 
 	muteAllTracks(subChannels) {
 		subChannels.forEach(channel => {
