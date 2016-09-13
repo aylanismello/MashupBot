@@ -17,13 +17,17 @@ const TimeSlices = {
 
 const bpm = 160;
 const TIME_SLICE = 32;
+// const timeSlice = TimeSlices.THIRTYTWO;
 
 class Root extends React.Component {
 
 	constructor(props) {
 
-		const timeSlice = TimeSlices.THIRTYTWO;
 		super(props);
+
+		debugger;
+
+
 		this.state = {
 			note: 0,
 			loaded: false,
@@ -121,6 +125,8 @@ class Root extends React.Component {
 				`${path}/acapella.wav`,
 				`${path}/melody.wav`
 			];
+			
+			debugger;
 
 		this.buffers = buffers;
 

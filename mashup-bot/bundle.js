@@ -21492,6 +21492,7 @@
 	
 	var bpm = 160;
 	var TIME_SLICE = 32;
+	// const timeSlice = TimeSlices.THIRTYTWO;
 	
 	var Root = function (_React$Component) {
 		_inherits(Root, _React$Component);
@@ -21499,9 +21500,9 @@
 		function Root(props) {
 			_classCallCheck(this, Root);
 	
-			var timeSlice = TimeSlices.THIRTYTWO;
-	
 			var _this = _possibleConstructorReturn(this, (Root.__proto__ || Object.getPrototypeOf(Root)).call(this, props));
+	
+			debugger;
 	
 			_this.state = {
 				note: 0,
@@ -21587,6 +21588,8 @@
 				var beatsBuffers = [beatsPath + '/express_yourself.wav', beatsPath + '/rollup.wav', beatsPath + '/so_fresh.wav'];
 	
 				var buffers = [path + '/beat.wav', path + '/acapella.wav', path + '/melody.wav'];
+	
+				debugger;
 	
 				this.buffers = buffers;
 	
