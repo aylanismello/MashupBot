@@ -6,7 +6,9 @@ import Channel from './channel';
 
 
 const path = './stems';
-const beatsPath = './stems/beats';
+const BEATS_PATH = './stems/beats';
+const MELODIES_PATH = './stems/melodies';
+const ACAPELLAS_PATH = './stems/acapellas';
 const CIRCUMFERENCE = Math.PI * 2;
 const GREENISH = "#59b2a1";
 const TimeSlices = {
@@ -26,8 +28,6 @@ class Root extends React.Component {
 
 		super(props);
 
-		// debugger;
-
 
 		this.state = {
 			note: 0,
@@ -35,6 +35,12 @@ class Root extends React.Component {
 			playing: false,
 			buffersLoaded: 0
 		};
+
+		this.channels = {
+			beat: {},
+			acapella: {},
+			melody: {}
+		}
 
 
 
@@ -129,37 +135,43 @@ class Root extends React.Component {
 
 	createAudioPipeline() {
 
-		let beatsBuffers = [
-			`${beatsPath}/backseat.wav`,
-			`${beatsPath}/yonkers.wav`,
-			`${beatsPath}/so_fresh.wav`
-		];
+		let buffers = {
+			beat: [
+				`${BEATS_PATH}/backseat.wav`,
+				`${BEATS_PATH}/yonkers.wav`,
+				`${BEATS_PATH}/so_fresh.wav`
+			],
+			melody: [
+				`${MELODIES_PATH}/1994.wav`,
+				`${MELODIES_PATH}/lullaby.wav`,
+				`${MELODIES_PATH}/mercy_me.wav`
+			],
 
+			acapella: [
+				`${ACAPELLAS_PATH}/bob.wav`,
+				`${ACAPELLAS_PATH}/green_light.wav`,
+				`${ACAPELLAS_PATH}/gucci.wav`
+			]
 
-		// let subChannels = [];
-		// let channelGainNode = this.contxt.createGain();
-		//
-		// loader(beatsBuffers, this.contxt, (err, loadedBuffers) => {
-		// 	loadedBuffers.forEach((buffer, idx) => {
-		// 		subChannels.push(this.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
-		// 	});
-
-
-
-			// let beatChannel = {
-			// 	subChannels,
-			// 	channelGainNode,
-			// 	setGain: (gain) => {
-			// 		channelGainNode.gain.value = gain;
-			// 	}
-			// };
-
-			this.beatChannel = {};
+		};
 
 
 
-			this.makeChannelFromBuffers(beatsBuffers, (beatChannel) => { this.beatChannel = beatChannel;} );
-			// this.beatChannel = beatChannel;
+
+
+
+			Object.keys(buffers).forEach(buffer => {
+				this.makeChannelFromBuffers(buffers[buffer], channel => { this.channels[buffer] = channel;} )
+			});
+
+			// this.makeChannelFromBuffers(beatBuffers, (channel) => { this.channels.beat = channel;} );
+			// this.makeChannelFromBuffers(melodyBuffers, (channel) => { this.channels.melody = channel;} );
+			// this.makeChannelFromBuffers(acapellaBuffers, (channel) => { this.channels.acapella = channel;} );
+
+
+
+
+			// this.channels.beat = channels.beat;
 
 
 
@@ -237,7 +249,7 @@ class Root extends React.Component {
 		const spb = 60.0 / (bpm * bpmMultiplier);
 		this.spb = spb;
 		this.setState({playing: true});
-		this.beatChannel.subChannels.forEach(channel => {
+		this.channels.beat.subChannels.forEach(channel => {
 			channel.setGain(0.25);
 			channel.source.start(0);
 		});
@@ -262,10 +274,10 @@ class Root extends React.Component {
 		}
 
 
-		let selectedTrack = this.beatChannel.subChannels[trackIdx];
+		let selectedTrack = this.channels.beat.subChannels[trackIdx];
 		this.resetAllCircles(this.circles);
 		this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-		this.muteAllTracks(this.beatChannel.subChannels);
+		this.muteAllTracks(this.channels.beat.subChannels);
 		selectedTrack.setGain(0.5);
 	}
 
@@ -288,13 +300,18 @@ class Root extends React.Component {
 
 		let playerText = this.state.playing ? "STOP" : "START";
 
-		if (this.state.buffersLoaded === 1){
+		if (this.state.buffersLoaded === 3){
 			debugger;
 			return (
 				<div>
-					<Channel subChannels={this.beatChannel.subChannels}
+					<Channel subChannels={this.channels.beat.subChannels}
 						switchTrack={this.switchTrack}
-						setChannelGain={this.beatChannel.setGain}
+						setChannelGain={this.channels.beat.setGain}
+						setCanvas={this.setCanvas}/>
+
+					<Channel subChannels={this.channels.melody.subChannels}
+						switchTrack={this.switchTrack}
+						setChannelGain={this.channels.melody.setGain}
 						setCanvas={this.setCanvas}/>
 
 

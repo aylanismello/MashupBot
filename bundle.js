@@ -21477,7 +21477,9 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var path = './stems';
-	var beatsPath = './stems/beats';
+	var BEATS_PATH = './stems/beats';
+	var MELODIES_PATH = './stems/melodies';
+	var ACAPELLAS_PATH = './stems/acapellas';
 	var CIRCUMFERENCE = Math.PI * 2;
 	var GREENISH = "#59b2a1";
 	var TimeSlices = {
@@ -21497,9 +21499,6 @@
 		function Root(props) {
 			_classCallCheck(this, Root);
 	
-			// debugger;
-	
-	
 			var _this = _possibleConstructorReturn(this, (Root.__proto__ || Object.getPrototypeOf(Root)).call(this, props));
 	
 			_this.state = {
@@ -21507,6 +21506,12 @@
 				loaded: false,
 				playing: false,
 				buffersLoaded: 0
+			};
+	
+			_this.channels = {
+				beat: {},
+				acapella: {},
+				melody: {}
 			};
 	
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
@@ -21601,31 +21606,26 @@
 			value: function createAudioPipeline() {
 				var _this2 = this;
 	
-				var beatsBuffers = [beatsPath + '/backseat.wav', beatsPath + '/yonkers.wav', beatsPath + '/so_fresh.wav'];
+				var buffers = {
+					beat: [BEATS_PATH + '/backseat.wav', BEATS_PATH + '/yonkers.wav', BEATS_PATH + '/so_fresh.wav'],
+					melody: [MELODIES_PATH + '/1994.wav', MELODIES_PATH + '/lullaby.wav', MELODIES_PATH + '/mercy_me.wav'],
 	
-				// let subChannels = [];
-				// let channelGainNode = this.contxt.createGain();
-				//
-				// loader(beatsBuffers, this.contxt, (err, loadedBuffers) => {
-				// 	loadedBuffers.forEach((buffer, idx) => {
-				// 		subChannels.push(this.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
-				// 	});
+					acapella: [ACAPELLAS_PATH + '/bob.wav', ACAPELLAS_PATH + '/green_light.wav', ACAPELLAS_PATH + '/gucci.wav']
 	
+				};
 	
-				// let beatChannel = {
-				// 	subChannels,
-				// 	channelGainNode,
-				// 	setGain: (gain) => {
-				// 		channelGainNode.gain.value = gain;
-				// 	}
-				// };
-	
-				this.beatChannel = {};
-	
-				this.makeChannelFromBuffers(beatsBuffers, function (beatChannel) {
-					_this2.beatChannel = beatChannel;
+				Object.keys(buffers).forEach(function (buffer) {
+					_this2.makeChannelFromBuffers(buffers[buffer], function (channel) {
+						_this2.channels[buffer] = channel;
+					});
 				});
-				// this.beatChannel = beatChannel;
+	
+				// this.makeChannelFromBuffers(beatBuffers, (channel) => { this.channels.beat = channel;} );
+				// this.makeChannelFromBuffers(melodyBuffers, (channel) => { this.channels.melody = channel;} );
+				// this.makeChannelFromBuffers(acapellaBuffers, (channel) => { this.channels.acapella = channel;} );
+	
+	
+				// this.channels.beat = channels.beat;
 	
 	
 				// });
@@ -21704,7 +21704,7 @@
 				var spb = 60.0 / (bpm * bpmMultiplier);
 				this.spb = spb;
 				this.setState({ playing: true });
-				this.beatChannel.subChannels.forEach(function (channel) {
+				this.channels.beat.subChannels.forEach(function (channel) {
 					channel.setGain(0.25);
 					channel.source.start(0);
 				});
@@ -21732,10 +21732,10 @@
 					return;
 				}
 	
-				var selectedTrack = this.beatChannel.subChannels[trackIdx];
+				var selectedTrack = this.channels.beat.subChannels[trackIdx];
 				this.resetAllCircles(this.circles);
 				this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-				this.muteAllTracks(this.beatChannel.subChannels);
+				this.muteAllTracks(this.channels.beat.subChannels);
 				selectedTrack.setGain(0.5);
 			}
 		}, {
@@ -21758,14 +21758,18 @@
 	
 				var playerText = this.state.playing ? "STOP" : "START";
 	
-				if (this.state.buffersLoaded === 1) {
+				if (this.state.buffersLoaded === 3) {
 					debugger;
 					return _react2.default.createElement(
 						'div',
 						null,
-						_react2.default.createElement(_channel2.default, { subChannels: this.beatChannel.subChannels,
+						_react2.default.createElement(_channel2.default, { subChannels: this.channels.beat.subChannels,
 							switchTrack: this.switchTrack,
-							setChannelGain: this.beatChannel.setGain,
+							setChannelGain: this.channels.beat.setGain,
+							setCanvas: this.setCanvas }),
+						_react2.default.createElement(_channel2.default, { subChannels: this.channels.melody.subChannels,
+							switchTrack: this.switchTrack,
+							setChannelGain: this.channels.melody.setGain,
 							setCanvas: this.setCanvas }),
 						_react2.default.createElement(
 							'button',
