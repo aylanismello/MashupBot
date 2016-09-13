@@ -21550,15 +21550,19 @@
 				var restart = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 	
 	
-				if (restart) {
-					this.circle.ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
-				}
-				this.circle.ctx.beginPath();
-				this.circle.ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
-				this.circle.ctx.fillStyle = "black";
-				this.circle.ctx.fill();
+				var ctx = this.circle.ctx;
+				startingRadian -= Math.PI / 2.0;
 	
-				this.circle.ctx.stroke();
+				if (restart) {
+					ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
+				}
+				ctx.beginPath();
+				ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+				ctx.lineWidth = 20;
+				ctx.fillStyle = "black";
+				ctx.fill();
+	
+				ctx.stroke();
 			}
 		}, {
 			key: 'createSubChannel',
