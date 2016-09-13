@@ -16,8 +16,8 @@ class Channel extends React.Component {
 
 	}
 
-	selectTrack(trackIdx) {
-		this.props.switchTrack(trackIdx);
+	selectTrack(trackIdx, id) {
+		this.props.switchTrack(trackIdx, id, this.props.channelName);
 		this.setState({playingTrackIdx: trackIdx});
 	}
 
@@ -33,6 +33,7 @@ class Channel extends React.Component {
 						selectTrack={this.selectTrack.bind(this)}
 						playing={playing}
 						setCanvas={this.props.setCanvas}
+						channelName={this.props.channelName}
 						/>
 				</div>
 			);

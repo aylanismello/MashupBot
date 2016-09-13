@@ -21516,13 +21516,38 @@
 				melody: {}
 			};
 	
+			_this.channelsToSchedule = {
+				beat: {
+					nextTrackIdx: 0,
+					isScheduled: false,
+					soundCircleId: 'beat-0'
+				},
+				acapella: {
+					nextTrackIdx: 0,
+					isScheduled: false,
+					soundCircleId: 'acapella-0'
+				},
+				melody: {
+					nextTrackIdx: 0,
+					isScheduled: false,
+					soundCircleId: 'melody-0'
+				}
+			};
+	
+			_this.circles = {};
+			// this.circles = [];
+	
+	
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
 			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
 			_this.contxt = new AudioContext();
+	
 			_this.nextTrackIdx = 0;
+			_this.nextSoundCircleId = 'beat-0';
+			_this.nextChannel = 'beat';
 	
 			// this.canvasContexts = [];
-			_this.circles = [];
+	
 	
 			_this.masterGain = _this.contxt.createGain();
 			_this.masterGain.connect(_this.contxt.destination);
@@ -21547,6 +21572,8 @@
 			key: 'setCanvas',
 			value: function setCanvas(id, idx) {
 	
+				// debugger;
+	
 				var canvas = document.querySelector('#' + id);
 				var ctx = canvas.getContext("2d");
 	
@@ -21560,19 +21587,29 @@
 					max: max
 				};
 	
-				this.circles.push(circle);
+				// this.circles.push(circle);
+	
+	
+				this.circles[id] = circle;
+				// debugger;
 			}
 		}, {
 			key: 'drawAtRad',
 			value: function drawAtRad(startingRadian, strokeLength) {
+				var _this2 = this;
+	
 				var restart = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 	
 	
 				startingRadian -= Math.PI / 2.0;
 	
-				this.circles.forEach(function (circle) {
+				// debugger;
+				Object.keys(this.circles).forEach(function (circleKey) {
 	
+					var circle = _this2.circles[circleKey];
 					var ctx = circle.ctx;
+	
+					// debugger;
 	
 					if (restart) {
 						ctx.clearRect(0, 0, circle.canvas.width, circle.canvas.height);
@@ -21606,7 +21643,7 @@
 		}, {
 			key: 'createAudioPipeline',
 			value: function createAudioPipeline() {
-				var _this2 = this;
+				var _this3 = this;
 	
 				var buffers = {
 					beat: [BEATS_PATH + '/backseat.wav', BEATS_PATH + '/yonkers.wav', BEATS_PATH + '/so_fresh.wav'],
@@ -21617,22 +21654,22 @@
 				};
 	
 				Object.keys(buffers).forEach(function (buffer) {
-					_this2.makeChannelFromBuffers(buffers[buffer], function (channel) {
-						_this2.channels[buffer] = channel;
+					_this3.makeChannelFromBuffers(buffers[buffer], function (channel) {
+						_this3.channels[buffer] = channel;
 					});
 				});
 			}
 		}, {
 			key: 'makeChannelFromBuffers',
 			value: function makeChannelFromBuffers(buffers, setChannel) {
-				var _this3 = this;
+				var _this4 = this;
 	
 				var subChannels = [];
 				var channelGainNode = this.contxt.createGain();
 	
 				(0, _webaudioBufferLoader2.default)(buffers, this.contxt, function (err, loadedBuffers) {
 					loadedBuffers.forEach(function (buffer, idx) {
-						subChannels.push(_this3.createSubChannel(buffer, buffers[idx], channelGainNode));
+						subChannels.push(_this4.createSubChannel(buffer, buffers[idx], channelGainNode));
 					});
 	
 					var channel = {
@@ -21645,14 +21682,22 @@
 	
 					setChannel(channel);
 	
-					_this3.setState({ buffersLoaded: _this3.state.buffersLoaded + 1 });
+					_this4.setState({ buffersLoaded: _this4.state.buffersLoaded + 1 });
 				});
 			}
 		}, {
 			key: 'metronome',
 			value: function metronome(e) {
+				var _this5 = this;
+	
 				var t0 = e.playbackTime;
-				this.switchTrack(this.nextTrackIdx, true);
+	
+				Object.keys(this.channelsToSchedule).forEach(function (channel) {
+					_this5.switchTrack(_this5.channelsToSchedule[channel].nextTrackIdx, _this5.channelsToSchedule[channel].soundCircleId, channel, true);
+				});
+	
+				// this.switchTrack(this.nextTrackIdx, this.nextSoundCircleId, true);
+	
 	
 				for (var step = 0; step <= TIME_SLICE; step++) {
 					var schedStartTime = t0 + this.spb * step;
@@ -21687,7 +21732,7 @@
 		}, {
 			key: 'startMetronome',
 			value: function startMetronome() {
-				var _this4 = this;
+				var _this6 = this;
 	
 				var timeSlice = TIME_SLICE;
 				var bpmMultiplier = Math.log2(timeSlice / 2);
@@ -21696,7 +21741,7 @@
 				this.setState({ playing: true });
 	
 				Object.keys(this.channels).forEach(function (channel) {
-					_this4.channels[channel].subChannels.forEach(function (track, idx) {
+					_this6.channels[channel].subChannels.forEach(function (track, idx) {
 						if (idx === 0) {
 							track.setGain(DEFAULT_CHANNEL_GAIN);
 						} else {
@@ -21721,26 +21766,42 @@
 			}
 		}, {
 			key: 'switchTrack',
-			value: function switchTrack(trackIdx) {
-				var isScheduled = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+			value: function switchTrack(trackIdx, soundCircleId, channel) {
+				var isScheduled = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 	
 	
 				if (!isScheduled) {
-					this.nextTrackIdx = trackIdx;
-					return;
+					var channelToSchedule = this.channelsToSchedule[channel];
+					// debugger;
+					channelToSchedule.nextTrackIdx = trackIdx;
+					channelToSchedule.nextSoundCircleId = soundCircleId;
+					channelToSchedule.isScheduled = false;
+					// this.nextChannel = channel;
+					// debugger;
+					// return;
 				}
 	
-				var selectedTrack = this.channels.beat.subChannels[trackIdx];
+				var selectedTrack = this.channels[channel].subChannels[trackIdx];
 				this.resetAllCircles(this.circles);
-				this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-				this.muteAllTracks(this.channels.beat.subChannels);
+				// debugger;
+				this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
+	
+				this.muteAllTracks(this.channels[channel].subChannels);
 				selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+	
+				// let selectedTrack = this.channels.beat.subChannels[trackIdx];
+				// this.resetAllCircles(this.circles);
+				// this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
+				//
+				// this.muteAllTracks(this.channels.beat.subChannels);
+				// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+	
 			}
 		}, {
 			key: 'resetAllCircles',
 			value: function resetAllCircles(circles) {
-				circles.forEach(function (circle) {
-					circle.ctx.strokeStyle = GREENISH;
+				Object.keys(circles).forEach(function (circle) {
+					circles[circle].ctx.strokeStyle = GREENISH;
 				});
 			}
 		}, {
@@ -21753,24 +21814,26 @@
 		}, {
 			key: 'render',
 			value: function render() {
-				var _this5 = this;
+				var _this7 = this;
 	
 				var playerText = this.state.playing ? "STOP" : "START";
 	
 				if (this.state.buffersLoaded === 3) {
 					return _react2.default.createElement(
 						'div',
-						null,
-						Object.keys(this.channels).map(function (channel) {
+						{ className: 'mix-board' },
+						Object.keys(this.channels).map(function (channel, idx) {
 							return _react2.default.createElement(
 								'div',
-								null,
-								_react2.default.createElement(_channel2.default, { subChannels: _this5.channels[channel].subChannels,
+								{ className: 'channel' },
+								_react2.default.createElement(_channel2.default, {
+									subChannels: _this7.channels[channel].subChannels,
 									channelName: channel,
-									switchTrack: _this5.switchTrack,
-									setChannelGain: _this5.channels[channel].setGain,
-									setCanvas: _this5.setCanvas,
-									defaultGain: DEFAULT_CHANNEL_GAIN
+									switchTrack: _this7.switchTrack,
+									setChannelGain: _this7.channels[channel].setGain,
+									setCanvas: _this7.setCanvas,
+									defaultGain: DEFAULT_CHANNEL_GAIN,
+									key: idx
 								})
 							);
 						}),
@@ -24405,7 +24468,7 @@
 	
 			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
 	
-			_this.id = "sound-circle-" + _this.props.idx;
+			_this.id = props.channelName + "-" + props.idx;
 			return _this;
 		}
 	
@@ -24417,7 +24480,6 @@
 		}, {
 			key: "render",
 			value: function render() {
-	
 				var text = this.props.playing ? "ON" : "OFF";
 	
 				return _react2.default.createElement(
@@ -24426,7 +24488,7 @@
 					_react2.default.createElement(
 						"canvas",
 						{ className: "sound-circle", id: this.id,
-							onClick: this.props.selectTrack.bind(null, this.props.idx) },
+							onClick: this.props.selectTrack.bind(null, this.props.idx, this.props.id) },
 						text
 					)
 				);
@@ -24488,8 +24550,8 @@
 	
 		_createClass(Channel, [{
 			key: 'selectTrack',
-			value: function selectTrack(trackIdx) {
-				this.props.switchTrack(trackIdx);
+			value: function selectTrack(trackIdx, id) {
+				this.props.switchTrack(trackIdx, id, this.props.channelName);
 				this.setState({ playingTrackIdx: trackIdx });
 			}
 		}, {
@@ -24505,7 +24567,8 @@
 						_react2.default.createElement(_sound_circle2.default, { idx: idx,
 							selectTrack: _this2.selectTrack.bind(_this2),
 							playing: playing,
-							setCanvas: _this2.props.setCanvas
+							setCanvas: _this2.props.setCanvas,
+							channelName: _this2.props.channelName
 						})
 					);
 				});

@@ -12,6 +12,9 @@ img {
   height: auto;
   display: block; }
 
+.mix-board {
+  display: flex; }
+
 .track-pic {
   width: 200px;
   height: 200px;

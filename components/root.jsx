@@ -42,17 +42,42 @@ class Root extends React.Component {
 			beat: {},
 			acapella: {},
 			melody: {}
+		};
+
+
+		this.channelsToSchedule = {
+			beat: {
+				nextTrackIdx: 0,
+				isScheduled: false,
+				soundCircleId: `beat-0`
+			},
+			acapella: {
+				nextTrackIdx: 0,
+				isScheduled: false,
+				soundCircleId: `acapella-0`
+			},
+			melody: {
+				nextTrackIdx: 0,
+				isScheduled: false,
+				soundCircleId: `melody-0`
+			}
 		}
 
+		this.circles = {};
+		// this.circles = [];
 
 
 		this.drawAtRad = this.drawAtRad.bind(this);
 		this.createAudioPipeline = this.createAudioPipeline.bind(this);
 		this.contxt = new AudioContext();
+
 		this.nextTrackIdx = 0;
+		this.nextSoundCircleId = `beat-0`;
+		this.nextChannel = 'beat';
 
 		// this.canvasContexts = [];
-		this.circles = [];
+
+
 
 		this.masterGain = this.contxt.createGain();
 		this.masterGain.connect(this.contxt.destination);
@@ -74,6 +99,8 @@ class Root extends React.Component {
 
 	setCanvas(id, idx) {
 
+		// debugger;
+
 		let canvas = document.querySelector(`#${id}`);
 		let ctx = canvas.getContext("2d");
 
@@ -87,7 +114,11 @@ class Root extends React.Component {
 			max
 		};
 
-		this.circles.push(circle);
+		// this.circles.push(circle);
+
+
+		this.circles[id] = circle;
+		// debugger;
 	}
 
 
@@ -96,9 +127,14 @@ class Root extends React.Component {
 
 		startingRadian -= Math.PI / 2.0;
 
-		this.circles.forEach(circle => {
 
+		// debugger;
+		Object.keys(this.circles).forEach(circleKey => {
+
+			let circle = this.circles[circleKey];
 			let ctx = circle.ctx;
+
+			// debugger;
 
 			if(restart){
 				ctx.clearRect(0, 0, circle.canvas.width, circle.canvas.height);
@@ -108,7 +144,6 @@ class Root extends React.Component {
 			ctx.arc(100, 60, 50, startingRadian, startingRadian + strokeLength);
 			ctx.stroke();
 		});
-
 
 
 	}
@@ -192,7 +227,19 @@ class Root extends React.Component {
 
 	metronome(e) {
 		let t0 = e.playbackTime;
-		this.switchTrack(this.nextTrackIdx, true);
+
+
+
+		Object.keys(this.channelsToSchedule).forEach(channel => {
+			this.switchTrack(this.channelsToSchedule[channel].nextTrackIdx,
+					this.channelsToSchedule[channel].soundCircleId, channel,
+						true);
+		});
+
+		// this.switchTrack(this.nextTrackIdx, this.nextSoundCircleId, true);
+
+
+
 
 		for (var step = 0; step <= TIME_SLICE; step++) {
 			let schedStartTime = t0 + (this.spb * step);
@@ -255,26 +302,44 @@ class Root extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-	switchTrack(trackIdx, isScheduled=false) {
+	switchTrack(trackIdx, soundCircleId, channel, isScheduled=false) {
 
 		if (!isScheduled) {
-			this.nextTrackIdx = trackIdx;
-			return;
+			let channelToSchedule = this.channelsToSchedule[channel];
+			// debugger;
+			channelToSchedule.nextTrackIdx = trackIdx;
+			channelToSchedule.nextSoundCircleId = soundCircleId;
+			channelToSchedule.isScheduled = false;
+			// this.nextChannel = channel;
+			// debugger;
+			// return;
 		}
 
 
-		let selectedTrack = this.channels.beat.subChannels[trackIdx];
+		let selectedTrack = this.channels[channel].subChannels[trackIdx];
 		this.resetAllCircles(this.circles);
-		this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-		this.muteAllTracks(this.channels.beat.subChannels);
+		// debugger;
+		this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
+
+		this.muteAllTracks(this.channels[channel].subChannels);
 		selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+
+
+
+		// let selectedTrack = this.channels.beat.subChannels[trackIdx];
+		// this.resetAllCircles(this.circles);
+		// this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
+		//
+		// this.muteAllTracks(this.channels.beat.subChannels);
+		// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+
+
 	}
 
 	resetAllCircles(circles) {
-		circles.forEach(circle => {
-			circle.ctx.strokeStyle = GREENISH;
+		Object.keys(circles).forEach(circle => {
+			circles[circle].ctx.strokeStyle = GREENISH;
 		});
-
 	}
 
 	muteAllTracks(subChannels) {
@@ -291,19 +356,21 @@ class Root extends React.Component {
 
 		if (this.state.buffersLoaded === 3){
 			return (
-				<div>
+				<div className="mix-board">
 
-					{Object.keys(this.channels).map((channel) => {
+					{Object.keys(this.channels).map((channel, idx) => {
 						return (
 
-							<div>
-							<Channel subChannels={this.channels[channel].subChannels}
-								channelName={channel}
-								switchTrack={this.switchTrack}
-								setChannelGain={this.channels[channel].setGain}
-								setCanvas={this.setCanvas}
-								defaultGain={DEFAULT_CHANNEL_GAIN}
-								/>
+							<div 	className="channel">
+								<Channel
+									subChannels={this.channels[channel].subChannels}
+									channelName={channel}
+									switchTrack={this.switchTrack}
+									setChannelGain={this.channels[channel].setGain}
+									setCanvas={this.setCanvas}
+									defaultGain={DEFAULT_CHANNEL_GAIN}
+									key={idx}
+									/>
 							</div>
 
 						);

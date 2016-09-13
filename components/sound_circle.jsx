@@ -3,25 +3,22 @@ import React from 'react';
 
 class SoundCircle extends React.Component {
 
+ constructor(props) {
+	 super(props);
+	 this.id = `${props.channelName}-${props.idx}`;
+ }
 
-	 constructor(props) {
-		 super(props);
-		 this.id = `sound-circle-${this.props.idx}`;
-	 }
+ componentDidMount() {
+	 this.props.setCanvas(this.id, this.props.idx);
+ }
 
-	 componentDidMount() {
-		 this.props.setCanvas(this.id, this.props.idx);
-	 }
-
-	 render() {
-
+ render() {
 	 let text = this.props.playing ? "ON" : "OFF";
-
 
 		return (
 			<div className="track-pic">
 				<canvas className="sound-circle" id={this.id}
-					onClick={this.props.selectTrack.bind(null, this.props.idx)}>
+					onClick={this.props.selectTrack.bind(null, this.props.idx, this.props.id)}>
 					{text}
 				</canvas>
 			</div>
