@@ -21478,7 +21478,8 @@
 	
 	var path = './stems';
 	var beatsPath = './stems/beats';
-	
+	var CIRCUMFERENCE = Math.PI * 2;
+	var GREENISH = "#59b2a1";
 	var TimeSlices = {
 		FOUR: 4,
 		EIGHT: 8,
@@ -21507,21 +21508,13 @@
 				playing: false
 			};
 	
-			var canvas = document.querySelector("#can");
-			var ctx = canvas.getContext("2d");
-			ctx.lineWidth = 15;
-			ctx.strokeStyle = "#59b2a1";
-			var max = 2 * Math.PI;
-	
-			_this.circle = {
-				canvas: canvas,
-				ctx: ctx,
-				max: max
-			};
-	
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
 			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
 			_this.contxt = new AudioContext();
+			_this.nextTrackIdx = 0;
+	
+			// this.canvasContexts = [];
+			_this.circles = [];
 	
 			_this.masterGain = _this.contxt.createGain();
 			_this.masterGain.connect(_this.contxt.destination);
@@ -21538,13 +21531,38 @@
 	
 			_this.makeImages = _this.makeImages.bind(_this);
 			// this.makeImages(this.circle.ctx);
-	
+			_this.setCanvas = _this.setCanvas.bind(_this);
 			_this.createAudioPipeline();
 	
 			return _this;
 		}
 	
 		_createClass(Root, [{
+			key: 'setCanvas',
+			value: function setCanvas(id, idx) {
+	
+				var canvas = document.querySelector('#' + id);
+	
+				var ctx = canvas.getContext("2d");
+	
+				ctx.lineWidth = 15;
+				ctx.strokeStyle = GREENISH;
+				var max = 2 * Math.PI;
+	
+				// this.circle = {
+				// 	canvas,
+				// 	ctx,
+				// 	max
+				// };
+				var circle = {
+					canvas: canvas,
+					ctx: ctx,
+					max: max
+				};
+	
+				this.circles.push(circle);
+			}
+		}, {
 			key: 'makeImages',
 			value: function makeImages(ctx) {
 				var base_image = new Image();
@@ -21561,19 +21579,20 @@
 				var restart = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 	
 	
-				var ctx = this.circle.ctx;
 				startingRadian -= Math.PI / 2.0;
 	
-				if (restart) {
-					ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
-				}
-				ctx.beginPath();
-				ctx.arc(125, 75, 50, startingRadian, startingRadian + strokeLength);
-				ctx.lineWidth = 20;
-				ctx.fillStyle = "black";
-				ctx.fill();
+				this.circles.forEach(function (circle) {
 	
-				ctx.stroke();
+					var ctx = circle.ctx;
+	
+					if (restart) {
+						ctx.clearRect(0, 0, circle.canvas.width, circle.canvas.height);
+					}
+	
+					ctx.beginPath();
+					ctx.arc(100, 60, 50, startingRadian, startingRadian + strokeLength);
+					ctx.stroke();
+				});
 			}
 		}, {
 			key: 'createSubChannel',
@@ -21602,12 +21621,6 @@
 	
 				var beatsBuffers = [beatsPath + '/backseat.wav', beatsPath + '/yonkers.wav', beatsPath + '/so_fresh.wav'];
 	
-				var buffers = [path + '/beat.wav', path + '/acapella.wav', path + '/melody.wav'];
-	
-				// debugger;
-	
-				this.buffers = buffers;
-	
 				var subChannels = [];
 	
 				var channelGainNode = this.contxt.createGain();
@@ -21627,21 +21640,17 @@
 					_this2.beatChannel = beatChannel;
 	
 					_this2.setState({ loaded: true });
-	
-					// window.channels = this.channels;
 				});
 			}
 		}, {
 			key: 'metronome',
 			value: function metronome(e) {
 				var t0 = e.playbackTime;
-				// console.log(`starting metronome at ${e.playbackTime}`);
-				// debugger;
 	
+				this.switchTrack(this.nextTrackIdx, true);
 	
 				for (var step = 0; step <= TIME_SLICE; step++) {
 					var schedStartTime = t0 + this.spb * step;
-	
 					if (step === TIME_SLICE) {
 						this.sched.insert(t0 + this.spb * TIME_SLICE, this.metronome);
 					} else {
@@ -21652,14 +21661,11 @@
 		}, {
 			key: 'tick',
 			value: function tick(e) {
-				// console.log(`tick ${e.playbackTime} and beat ${e.args.beat}`);
 	
-				var arcSize = this.circle.max / (TIME_SLICE * 1.0);
+				var arcSize = CIRCUMFERENCE / (Number(TIME_SLICE) * 1.0);
 	
-				var startingRad = this.circle.max / TIME_SLICE * e.args.beat;
+				var startingRad = CIRCUMFERENCE / TIME_SLICE * e.args.beat;
 	
-				// console.log(`startingRad: ${startingRad}`);
-				// let endRad = startingRad + arcSize;
 				if (e.args.beat === TIME_SLICE - 1) {
 					this.drawAtRad(startingRad, arcSize, true);
 				} else {
@@ -21670,7 +21676,6 @@
 			key: 'handleUser',
 			value: function handleUser() {
 				if (this.state.playing) {
-					console.log('stop');
 					this.stopMetronome();
 				} else {
 					this.startMetronome();
@@ -21705,22 +21710,31 @@
 		}, {
 			key: 'switchTrack',
 			value: function switchTrack(trackIdx) {
-				// debugger;
-				// return e => {
-				// 	console.log('what the fuck');
-				// };
-				// let newTrackIdx = e.currentTarget.value;
+				var isScheduled = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 	
 	
-				// debugger;
-				// let newTrackIdx = 0;
-				var newTrackIdx = trackIdx;
-				var selectedTrack = this.beatChannel.subChannels[newTrackIdx];
+				if (!isScheduled) {
+					this.nextTrackIdx = trackIdx;
+					return;
+				}
 	
-				console.log('switching to track ' + newTrackIdx + ': ' + selectedTrack);
-				console.log('muting all tracks first');
+				console.log('got to be scheduled');
+	
+				// THIS EVENT SHOULD BE SCHEDULED.
+				var selectedTrack = this.beatChannel.subChannels[trackIdx];
+	
+				this.resetAllCircles(this.circles);
+				this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
+	
 				this.muteAllTracks(this.beatChannel.subChannels);
 				selectedTrack.setGain(0.5);
+			}
+		}, {
+			key: 'resetAllCircles',
+			value: function resetAllCircles(circles) {
+				circles.forEach(function (circle) {
+					circle.ctx.strokeStyle = GREENISH;
+				});
 			}
 		}, {
 			key: 'muteAllTracks',
@@ -21740,8 +21754,8 @@
 						'div',
 						null,
 						_react2.default.createElement(_channel2.default, { subChannels: this.beatChannel.subChannels,
-							switchTrack: this.switchTrack, setChannelGain: this.beatChannel.setGain }),
-						'})}',
+							switchTrack: this.switchTrack, setChannelGain: this.beatChannel.setGain,
+							setCanvas: this.setCanvas }),
 						_react2.default.createElement(
 							'button',
 							{ onClick: this.handleUser },
@@ -24350,27 +24364,58 @@
 		value: true
 	});
 	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
 	var _react = __webpack_require__(1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var SoundCircle = function SoundCircle(_ref) {
-		var selectTrack = _ref.selectTrack;
-		var idx = _ref.idx;
-		var playing = _ref.playing;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
-		var text = playing ? "ON" : "OFF";
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-		return _react2.default.createElement(
-			"div",
-			{ className: "sound-circle",
-				onClick: selectTrack.bind(null, idx) },
-			text
-		);
-	};
+	var SoundCircle = function (_React$Component) {
+		_inherits(SoundCircle, _React$Component);
+	
+		function SoundCircle(props) {
+			_classCallCheck(this, SoundCircle);
+	
+			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
+	
+			_this.id = "sound-circle-" + _this.props.idx;
+			return _this;
+		}
+	
+		_createClass(SoundCircle, [{
+			key: "componentDidMount",
+			value: function componentDidMount() {
+				this.props.setCanvas(this.id, this.props.idx);
+			}
+		}, {
+			key: "render",
+			value: function render() {
+	
+				var text = this.props.playing ? "ON" : "OFF";
+	
+				return _react2.default.createElement(
+					"div",
+					{ className: "track-pic" },
+					_react2.default.createElement(
+						"canvas",
+						{ className: "sound-circle", id: this.id,
+							onClick: this.props.selectTrack.bind(null, this.props.idx) },
+						text
+					)
+				);
+			}
+		}]);
+	
+		return SoundCircle;
+	}(_react2.default.Component);
 	
 	exports.default = SoundCircle;
 
@@ -24412,6 +24457,7 @@
 		function Channel(props) {
 			_classCallCheck(this, Channel);
 	
+			// props.setCanvas();
 			var _this = _possibleConstructorReturn(this, (Channel.__proto__ || Object.getPrototypeOf(Channel)).call(this, props));
 	
 			_this.subChannels = props.subChannels;
@@ -24440,7 +24486,8 @@
 						{ key: idx },
 						_react2.default.createElement(_sound_circle2.default, { idx: idx,
 							selectTrack: _this2.selectTrack.bind(_this2),
-							playing: playing
+							playing: playing,
+							setCanvas: _this2.props.setCanvas
 						})
 					);
 				});

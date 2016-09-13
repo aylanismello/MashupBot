@@ -9,6 +9,7 @@ class Channel extends React.Component {
 		super(props);
 
 
+		// props.setCanvas();
 		this.subChannels = props.subChannels;
 		this.state = {
 			playingTrackIdx: 0
@@ -19,11 +20,15 @@ class Channel extends React.Component {
 
 	}
 
-
 	selectTrack(trackIdx) {
 		this.props.switchTrack(trackIdx);
 		this.setState({playingTrackIdx: trackIdx});
 	}
+
+
+
+
+
 
 	render() {
 
@@ -34,6 +39,7 @@ class Channel extends React.Component {
 				<SoundCircle idx={idx}
 					selectTrack={this.selectTrack.bind(this)}
 					playing={playing}
+					setCanvas={this.props.setCanvas}
 					/>
 				</div>
 			);

@@ -7,16 +7,19 @@
   background: yellow;
   border: 3px solid red; }
 
-.sound-circle {
-  width: 100px;
-  height: 100px;
-  border-radius: 1000px;
-  padding: 10px 10px;
-  background: green; }
+img {
+  width: 100%;
+  height: auto;
+  display: block; }
 
-.canvas {
+.track-pic {
   width: 200px;
-  height: 200px; }
+  height: 200px;
+  margin: 10px;
+  border-radius: 10000px; }
+  .track-pic .sound-circle {
+    width: inherit;
+    height: inherit; }
 
 html {
   font-size: 16px; }

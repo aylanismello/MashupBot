@@ -1,17 +1,33 @@
 import React from 'react';
 
 
-const SoundCircle = ({selectTrack, idx, playing}) => {
+class SoundCircle extends React.Component {
 
-	let text = playing ? "ON" : "OFF";
 
-	return (
-		<div className="sound-circle"
-			onClick={selectTrack.bind(null, idx)}>
-			{text}
-		</div>
-	);
-};
+	 constructor(props) {
+		 super(props);
+		 this.id = `sound-circle-${this.props.idx}`;
+	 }
+
+	 componentDidMount() {
+		 this.props.setCanvas(this.id, this.props.idx);
+	 }
+
+	 render() {
+
+	 let text = this.props.playing ? "ON" : "OFF";
+
+
+		return (
+			<div className="track-pic">
+				<canvas className="sound-circle" id={this.id}
+					onClick={this.props.selectTrack.bind(null, this.props.idx)}>
+					{text}
+				</canvas>
+			</div>
+		);
+	}
+}
 
 
 export default SoundCircle;
