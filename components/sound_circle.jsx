@@ -1,29 +1,17 @@
 import React from 'react';
 
-class SoundCircle extends React.Component {
-	constructor(props) {
-		super(props);
 
+const SoundCircle = ({selectTrack, idx, playing}) => {
 
+	let text = playing ? "ON" : "OFF";
 
-		this.state = {
-			playing: false
-		};
-	}
+	return (
+		<div className="sound-circle"
+			onClick={selectTrack.bind(null, idx)}>
+			{text}
+		</div>
+	);
+};
 
-
-
-	render() {
-		// debugger;
-		let statusText = this.state.playing ? "ON" : "OFF";
-		return(
-			<div className="sound-circle"
-				onClick={this.props.selectTrack.bind(null, this.props.idx)}>
-				{statusText}
-			</div>
-		);
-	}
-
-}
 
 export default SoundCircle;

@@ -21456,14 +21456,6 @@
 	
 	var _webaudioBufferLoader2 = _interopRequireDefault(_webaudioBufferLoader);
 	
-	var _slider = __webpack_require__(176);
-	
-	var _slider2 = _interopRequireDefault(_slider);
-	
-	var _react_slider = __webpack_require__(177);
-	
-	var _react_slider2 = _interopRequireDefault(_react_slider);
-	
 	var _progress_circle = __webpack_require__(178);
 	
 	var _progress_circle2 = _interopRequireDefault(_progress_circle);
@@ -21483,8 +21475,6 @@
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	// import SoundCircle from './sound_circle';
-	
 	
 	var path = './stems';
 	var beatsPath = './stems/beats';
@@ -23025,72 +23015,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(175).setImmediate, __webpack_require__(175).clearImmediate))
 
 /***/ },
-/* 176 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Slider = function (_React$Component) {
-		_inherits(Slider, _React$Component);
-	
-		function Slider(props) {
-			_classCallCheck(this, Slider);
-	
-			var _this = _possibleConstructorReturn(this, (Slider.__proto__ || Object.getPrototypeOf(Slider)).call(this, props));
-	
-			_this.setGain = _this.props.setGain;
-			_this.update = _this.update.bind(_this);
-			_this.state = {
-				value: 25
-			};
-			return _this;
-		}
-	
-		_createClass(Slider, [{
-			key: "update",
-			value: function update(e) {
-				var newGain = e.currentTarget.value / 100.0;
-				this.setState({ value: e.currentTarget.value });
-				this.setGain(newGain);
-			}
-		}, {
-			key: "render",
-			value: function render() {
-				return _react2.default.createElement(
-					"div",
-					null,
-					_react2.default.createElement("input", { type: "range", min: "0", max: "100",
-						value: this.state.value, onChange: this.update }),
-					_react2.default.createElement("br", null),
-					this.state.value / 100.0
-				);
-			}
-		}]);
-	
-		return Slider;
-	}(_react2.default.Component);
-	
-	exports.default = Slider;
-
-/***/ },
+/* 176 */,
 /* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -24425,50 +24350,27 @@
 		value: true
 	});
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
 	var _react = __webpack_require__(1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	var SoundCircle = function SoundCircle(_ref) {
+		var selectTrack = _ref.selectTrack;
+		var idx = _ref.idx;
+		var playing = _ref.playing;
 	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+		var text = playing ? "ON" : "OFF";
 	
-	var SoundCircle = function (_React$Component) {
-		_inherits(SoundCircle, _React$Component);
-	
-		function SoundCircle(props) {
-			_classCallCheck(this, SoundCircle);
-	
-			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
-	
-			_this.state = {
-				playing: false
-			};
-			return _this;
-		}
-	
-		_createClass(SoundCircle, [{
-			key: "render",
-			value: function render() {
-				// debugger;
-				var statusText = this.state.playing ? "ON" : "OFF";
-				return _react2.default.createElement(
-					"div",
-					{ className: "sound-circle",
-						onClick: this.props.selectTrack.bind(null, this.props.idx) },
-					statusText
-				);
-			}
-		}]);
-	
-		return SoundCircle;
-	}(_react2.default.Component);
+		return _react2.default.createElement(
+			"div",
+			{ className: "sound-circle",
+				onClick: selectTrack.bind(null, idx) },
+			text
+		);
+	};
 	
 	exports.default = SoundCircle;
 
@@ -24512,13 +24414,10 @@
 	
 			var _this = _possibleConstructorReturn(this, (Channel.__proto__ || Object.getPrototypeOf(Channel)).call(this, props));
 	
-			_this.subChannelsJSX = props.subChannels.map(function (subChannel, idx) {
-				return _react2.default.createElement(
-					'div',
-					null,
-					_react2.default.createElement(_sound_circle2.default, { idx: idx, selectTrack: _this.selectTrack.bind(_this) })
-				);
-			});
+			_this.subChannels = props.subChannels;
+			_this.state = {
+				playingTrackIdx: 0
+			};
 	
 			return _this;
 		}
@@ -24527,15 +24426,29 @@
 			key: 'selectTrack',
 			value: function selectTrack(trackIdx) {
 				this.props.switchTrack(trackIdx);
+				this.setState({ playingTrackIdx: trackIdx });
 			}
 		}, {
 			key: 'render',
 			value: function render() {
+				var _this2 = this;
+	
+				var subChannelsJSX = this.subChannels.map(function (subChannel, idx) {
+					var playing = idx === _this2.state.playingTrackIdx ? true : false;
+					return _react2.default.createElement(
+						'div',
+						{ key: idx },
+						_react2.default.createElement(_sound_circle2.default, { idx: idx,
+							selectTrack: _this2.selectTrack.bind(_this2),
+							playing: playing
+						})
+					);
+				});
 	
 				return _react2.default.createElement(
 					'div',
 					null,
-					this.subChannelsJSX,
+					subChannelsJSX,
 					_react2.default.createElement(_react_slider2.default, { setGain: this.props.setChannelGain })
 				);
 			}

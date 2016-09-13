@@ -1,10 +1,7 @@
 import React from 'react';
 import loader  from 'webaudio-buffer-loader';
-import Slider from './slider';
-import ReactSlider from './react_slider';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
-// import SoundCircle from './sound_circle';
 import Channel from './channel';
 
 
