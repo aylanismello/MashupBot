@@ -18,7 +18,7 @@ class SoundCircle extends React.Component {
 		return (
 			<div className="track-pic">
 				<canvas className="sound-circle" id={this.id}
-					onClick={this.props.selectTrack.bind(null, this.props.idx, this.props.id)}>
+					onClick={this.props.selectTrack.bind(null, this.props.idx, this.id)}>
 					{text}
 				</canvas>
 			</div>

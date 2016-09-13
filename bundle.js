@@ -21772,9 +21772,9 @@
 	
 				if (!isScheduled) {
 					var channelToSchedule = this.channelsToSchedule[channel];
-					// debugger;
 					channelToSchedule.nextTrackIdx = trackIdx;
-					channelToSchedule.nextSoundCircleId = soundCircleId;
+					// debugger;
+					channelToSchedule.soundCircleId = soundCircleId;
 					channelToSchedule.isScheduled = false;
 					// this.nextChannel = channel;
 					// debugger;
@@ -21784,6 +21784,11 @@
 				var selectedTrack = this.channels[channel].subChannels[trackIdx];
 				this.resetAllCircles(this.circles);
 				// debugger;
+	
+				// if (!this.circles[soundCircleId].ctx) {
+				// debugger;
+				// }
+				console.log('received ' + soundCircleId);
 				this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 	
 				this.muteAllTracks(this.channels[channel].subChannels);
@@ -24488,7 +24493,7 @@
 					_react2.default.createElement(
 						"canvas",
 						{ className: "sound-circle", id: this.id,
-							onClick: this.props.selectTrack.bind(null, this.props.idx, this.props.id) },
+							onClick: this.props.selectTrack.bind(null, this.props.idx, this.id) },
 						text
 					)
 				);

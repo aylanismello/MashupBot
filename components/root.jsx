@@ -306,9 +306,9 @@ class Root extends React.Component {
 
 		if (!isScheduled) {
 			let channelToSchedule = this.channelsToSchedule[channel];
-			// debugger;
 			channelToSchedule.nextTrackIdx = trackIdx;
-			channelToSchedule.nextSoundCircleId = soundCircleId;
+			// debugger;
+			channelToSchedule.soundCircleId = soundCircleId;
 			channelToSchedule.isScheduled = false;
 			// this.nextChannel = channel;
 			// debugger;
@@ -319,6 +319,11 @@ class Root extends React.Component {
 		let selectedTrack = this.channels[channel].subChannels[trackIdx];
 		this.resetAllCircles(this.circles);
 		// debugger;
+
+		// if (!this.circles[soundCircleId].ctx) {
+			// debugger;
+		// }
+		console.log(`received ${soundCircleId}`);
 		this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 
 		this.muteAllTracks(this.channels[channel].subChannels);
