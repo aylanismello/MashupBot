@@ -21505,7 +21505,8 @@
 			_this.state = {
 				note: 0,
 				loaded: false,
-				playing: false
+				playing: false,
+				buffersLoaded: 0
 			};
 	
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
@@ -21520,7 +21521,6 @@
 			_this.masterGain.connect(_this.contxt.destination);
 	
 			_this.sched = new _webAudioScheduler2.default({ context: _this.contxt });
-			_this.channels = [];
 			_this.startMetronome = _this.startMetronome.bind(_this);
 			_this.metronome = _this.metronome.bind(_this);
 			_this.handleUser = _this.handleUser.bind(_this);
@@ -21529,9 +21529,8 @@
 			_this.setMasterGain = _this.setMasterGain.bind(_this);
 			_this.switchTrack = _this.switchTrack.bind(_this);
 	
-			_this.makeImages = _this.makeImages.bind(_this);
-			// this.makeImages(this.circle.ctx);
 			_this.setCanvas = _this.setCanvas.bind(_this);
+			_this.makeChannelFromBuffers = _this.makeChannelFromBuffers.bind(_this);
 			_this.createAudioPipeline();
 	
 			return _this;
@@ -21542,18 +21541,12 @@
 			value: function setCanvas(id, idx) {
 	
 				var canvas = document.querySelector('#' + id);
-	
 				var ctx = canvas.getContext("2d");
 	
 				ctx.lineWidth = 15;
 				ctx.strokeStyle = GREENISH;
 				var max = 2 * Math.PI;
 	
-				// this.circle = {
-				// 	canvas,
-				// 	ctx,
-				// 	max
-				// };
 				var circle = {
 					canvas: canvas,
 					ctx: ctx,
@@ -21561,17 +21554,6 @@
 				};
 	
 				this.circles.push(circle);
-			}
-		}, {
-			key: 'makeImages',
-			value: function makeImages(ctx) {
-				var base_image = new Image();
-				base_image.src = 'images/kendrick2.png';
-	
-				base_image.onload = function () {
-					ctx.drawImage(base_image, 80, 34);
-					// this.createAudioPipeline();
-				};
 			}
 		}, {
 			key: 'drawAtRad',
@@ -21621,32 +21603,67 @@
 	
 				var beatsBuffers = [beatsPath + '/backseat.wav', beatsPath + '/yonkers.wav', beatsPath + '/so_fresh.wav'];
 	
-				var subChannels = [];
+				// let subChannels = [];
+				// let channelGainNode = this.contxt.createGain();
+				//
+				// loader(beatsBuffers, this.contxt, (err, loadedBuffers) => {
+				// 	loadedBuffers.forEach((buffer, idx) => {
+				// 		subChannels.push(this.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
+				// 	});
 	
+	
+				// let beatChannel = {
+				// 	subChannels,
+				// 	channelGainNode,
+				// 	setGain: (gain) => {
+				// 		channelGainNode.gain.value = gain;
+				// 	}
+				// };
+	
+				this.beatChannel = {};
+	
+				this.makeChannelFromBuffers(beatsBuffers, function (beatChannel) {
+					_this2.beatChannel = beatChannel;
+				});
+				// this.beatChannel = beatChannel;
+	
+	
+				// });
+	
+			}
+		}, {
+			key: 'makeChannelFromBuffers',
+			value: function makeChannelFromBuffers(buffers, setChannel) {
+				var _this3 = this;
+	
+				var subChannels = [];
 				var channelGainNode = this.contxt.createGain();
 	
-				(0, _webaudioBufferLoader2.default)(beatsBuffers, this.contxt, function (err, loadedBuffers) {
+				(0, _webaudioBufferLoader2.default)(buffers, this.contxt, function (err, loadedBuffers) {
 					loadedBuffers.forEach(function (buffer, idx) {
-						subChannels.push(_this2.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
+						subChannels.push(_this3.createSubChannel(buffer, buffers[idx], channelGainNode));
 					});
 	
-					var beatChannel = {
+					var channel = {
 						subChannels: subChannels,
 						channelGainNode: channelGainNode,
 						setGain: function setGain(gain) {
 							channelGainNode.gain.value = gain;
 						}
 					};
-					_this2.beatChannel = beatChannel;
 	
-					_this2.setState({ loaded: true });
+					setChannel(channel);
+	
+					// debugger;
+	
+					// this.setState({loaded: true});
+					_this3.setState({ buffersLoaded: _this3.state.buffersLoaded + 1 });
 				});
 			}
 		}, {
 			key: 'metronome',
 			value: function metronome(e) {
 				var t0 = e.playbackTime;
-	
 				this.switchTrack(this.nextTrackIdx, true);
 	
 				for (var step = 0; step <= TIME_SLICE; step++) {
@@ -21661,9 +21678,7 @@
 		}, {
 			key: 'tick',
 			value: function tick(e) {
-	
 				var arcSize = CIRCUMFERENCE / (Number(TIME_SLICE) * 1.0);
-	
 				var startingRad = CIRCUMFERENCE / TIME_SLICE * e.args.beat;
 	
 				if (e.args.beat === TIME_SLICE - 1) {
@@ -21684,7 +21699,6 @@
 		}, {
 			key: 'startMetronome',
 			value: function startMetronome() {
-				// console.log('FO SHO');
 				var timeSlice = TIME_SLICE;
 				var bpmMultiplier = Math.log2(timeSlice / 2);
 				var spb = 60.0 / (bpm * bpmMultiplier);
@@ -21718,14 +21732,9 @@
 					return;
 				}
 	
-				console.log('got to be scheduled');
-	
-				// THIS EVENT SHOULD BE SCHEDULED.
 				var selectedTrack = this.beatChannel.subChannels[trackIdx];
-	
 				this.resetAllCircles(this.circles);
 				this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-	
 				this.muteAllTracks(this.beatChannel.subChannels);
 				selectedTrack.setGain(0.5);
 			}
@@ -21749,12 +21758,14 @@
 	
 				var playerText = this.state.playing ? "STOP" : "START";
 	
-				if (this.state.loaded) {
+				if (this.state.buffersLoaded === 1) {
+					debugger;
 					return _react2.default.createElement(
 						'div',
 						null,
 						_react2.default.createElement(_channel2.default, { subChannels: this.beatChannel.subChannels,
-							switchTrack: this.switchTrack, setChannelGain: this.beatChannel.setGain,
+							switchTrack: this.switchTrack,
+							setChannelGain: this.beatChannel.setGain,
 							setCanvas: this.setCanvas }),
 						_react2.default.createElement(
 							'button',

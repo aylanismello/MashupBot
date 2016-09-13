@@ -32,7 +32,8 @@ class Root extends React.Component {
 		this.state = {
 			note: 0,
 			loaded: false,
-			playing: false
+			playing: false,
+			buffersLoaded: 0
 		};
 
 
@@ -49,7 +50,6 @@ class Root extends React.Component {
 		this.masterGain.connect(this.contxt.destination);
 
 	  this.sched = new WebAudioScheduler({ context: this.contxt });
-		this.channels = [];
 		this.startMetronome = this.startMetronome.bind(this);
 		this.metronome = this.metronome.bind(this);
 		this.handleUser = this.handleUser.bind(this);
@@ -58,31 +58,21 @@ class Root extends React.Component {
 		this.setMasterGain = this.setMasterGain.bind(this);
 		this.switchTrack = this.switchTrack.bind(this);
 
-		this.makeImages = this.makeImages.bind(this);
-		// this.makeImages(this.circle.ctx);
 		this.setCanvas = this.setCanvas.bind(this);
+		this.makeChannelFromBuffers = this.makeChannelFromBuffers.bind(this);
 		this.createAudioPipeline();
-
-
 
 	}
 
 	setCanvas(id, idx) {
 
 		let canvas = document.querySelector(`#${id}`);
-
 		let ctx = canvas.getContext("2d");
-
 
 		ctx.lineWidth = 15;
 		ctx.strokeStyle = GREENISH;
 		let max = 2 * Math.PI;
 
-		// this.circle = {
-		// 	canvas,
-		// 	ctx,
-		// 	max
-		// };
 		let circle = {
 			canvas,
 			ctx,
@@ -90,20 +80,6 @@ class Root extends React.Component {
 		};
 
 		this.circles.push(circle);
-
-
-	}
-
-
-	makeImages(ctx) {
-		let base_image = new Image();
-  	base_image.src = 'images/kendrick2.png';
-
-  	base_image.onload = () => {
-	    ctx.drawImage(base_image, 80, 34);
-			// this.createAudioPipeline();
-	  };
-
 	}
 
 
@@ -138,8 +114,6 @@ class Root extends React.Component {
 		gainNode.connect(channelGainNode);
 		channelGainNode.connect(this.masterGain);
 
-
-
 		return {
 			source,
 			gainNode,
@@ -162,40 +136,68 @@ class Root extends React.Component {
 		];
 
 
+		// let subChannels = [];
+		// let channelGainNode = this.contxt.createGain();
+		//
+		// loader(beatsBuffers, this.contxt, (err, loadedBuffers) => {
+		// 	loadedBuffers.forEach((buffer, idx) => {
+		// 		subChannels.push(this.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
+		// 	});
 
 
+
+			// let beatChannel = {
+			// 	subChannels,
+			// 	channelGainNode,
+			// 	setGain: (gain) => {
+			// 		channelGainNode.gain.value = gain;
+			// 	}
+			// };
+
+			this.beatChannel = {};
+
+
+
+			this.makeChannelFromBuffers(beatsBuffers, (beatChannel) => { this.beatChannel = beatChannel;} );
+			// this.beatChannel = beatChannel;
+
+
+
+		// });
+
+
+	}
+
+
+	makeChannelFromBuffers(buffers, setChannel) {
 		let subChannels = [];
-
 		let channelGainNode = this.contxt.createGain();
 
-		loader(beatsBuffers, this.contxt, (err, loadedBuffers) => {
+		loader(buffers, this.contxt, (err, loadedBuffers) => {
 			loadedBuffers.forEach((buffer, idx) => {
-				subChannels.push(this.createSubChannel(buffer, beatsBuffers[idx], channelGainNode));
+				subChannels.push(this.createSubChannel(buffer, buffers[idx], channelGainNode));
 			});
 
-
-			let beatChannel = {
+			let channel = {
 				subChannels,
 				channelGainNode,
 				setGain: (gain) => {
 					channelGainNode.gain.value = gain;
 				}
 			};
-			this.beatChannel = beatChannel;
 
-			this.setState({loaded: true});
+			setChannel(channel);
 
+			// debugger;
+
+			// this.setState({loaded: true});
+			this.setState({buffersLoaded: this.state.buffersLoaded + 1});
 		});
-
 
 	}
 
-
-
-
 	metronome(e) {
 		let t0 = e.playbackTime;
-
 		this.switchTrack(this.nextTrackIdx, true);
 
 		for (var step = 0; step <= TIME_SLICE; step++) {
@@ -206,14 +208,10 @@ class Root extends React.Component {
 				this.sched.insert(schedStartTime, this.tick, {beat: step});
 			}
 		}
-
-
 	}
 
 	tick(e) {
-
 		let arcSize = (CIRCUMFERENCE / (Number(TIME_SLICE) * 1.0));
-
 		let startingRad = ((CIRCUMFERENCE / TIME_SLICE ) * e.args.beat);
 
 		if(e.args.beat === (TIME_SLICE - 1)) {
@@ -223,9 +221,7 @@ class Root extends React.Component {
 
 		}
 
-
 	}
-
 
 	handleUser() {
 		if (this.state.playing) {
@@ -236,7 +232,6 @@ class Root extends React.Component {
 	}
 
 	startMetronome() {
-		// console.log('FO SHO');
 		let timeSlice = TIME_SLICE;
 		let bpmMultiplier = Math.log2(timeSlice/2);
 		const spb = 60.0 / (bpm * bpmMultiplier);
@@ -266,18 +261,10 @@ class Root extends React.Component {
 			return;
 		}
 
-		console.log('got to be scheduled');
 
-		// THIS EVENT SHOULD BE SCHEDULED.
 		let selectedTrack = this.beatChannel.subChannels[trackIdx];
-
-
-
 		this.resetAllCircles(this.circles);
 		this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
-
-
-
 		this.muteAllTracks(this.beatChannel.subChannels);
 		selectedTrack.setGain(0.5);
 	}
@@ -295,21 +282,19 @@ class Root extends React.Component {
 
 		});
 
-
-
-
-
 }
 
 	render() {
 
 		let playerText = this.state.playing ? "STOP" : "START";
 
-		if (this.state.loaded){
+		if (this.state.buffersLoaded === 1){
+			debugger;
 			return (
 				<div>
 					<Channel subChannels={this.beatChannel.subChannels}
-						switchTrack={this.switchTrack} setChannelGain={this.beatChannel.setGain}
+						switchTrack={this.switchTrack}
+						setChannelGain={this.beatChannel.setGain}
 						setCanvas={this.setCanvas}/>
 
 
