@@ -11,6 +11,8 @@ const MELODIES_PATH = './stems/melodies';
 const ACAPELLAS_PATH = './stems/acapellas';
 const CIRCUMFERENCE = Math.PI * 2;
 const GREENISH = "#59b2a1";
+const DEFAULT_CHANNEL_GAIN = 0.5;
+
 const TimeSlices = {
 	FOUR: 4,
 	EIGHT: 8,
@@ -212,7 +214,6 @@ class Root extends React.Component {
 			this.drawAtRad(startingRad, arcSize);
 
 		}
-
 	}
 
 	handleUser() {
@@ -234,7 +235,7 @@ class Root extends React.Component {
 		Object.keys(this.channels).forEach(channel =>{
 			this.channels[channel].subChannels.forEach((track, idx) => {
 				if(idx === 0){
-					track.setGain(0.25);
+					track.setGain(DEFAULT_CHANNEL_GAIN);
 				} else {
 					track.setGain(0);
 				}
@@ -242,9 +243,7 @@ class Root extends React.Component {
 			});
 		});
 
-
 		this.sched.start(this.metronome);
-
 	}
 
 	stopMetronome () {
@@ -268,7 +267,7 @@ class Root extends React.Component {
 		this.resetAllCircles(this.circles);
 		this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
 		this.muteAllTracks(this.channels.beat.subChannels);
-		selectedTrack.setGain(0.5);
+		selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
 	}
 
 	resetAllCircles(circles) {
@@ -291,20 +290,24 @@ class Root extends React.Component {
 		let playerText = this.state.playing ? "STOP" : "START";
 
 		if (this.state.buffersLoaded === 3){
-			debugger;
 			return (
 				<div>
-					<Channel subChannels={this.channels.beat.subChannels}
-						switchTrack={this.switchTrack}
-						setChannelGain={this.channels.beat.setGain}
-						setCanvas={this.setCanvas}/>
 
-					<Channel subChannels={this.channels.melody.subChannels}
-						switchTrack={this.switchTrack}
-						setChannelGain={this.channels.melody.setGain}
-						setCanvas={this.setCanvas}/>
+					{Object.keys(this.channels).map((channel) => {
+						return (
 
+							<div>
+							<Channel subChannels={this.channels[channel].subChannels}
+								channelName={channel}
+								switchTrack={this.switchTrack}
+								setChannelGain={this.channels[channel].setGain}
+								setCanvas={this.setCanvas}
+								defaultGain={DEFAULT_CHANNEL_GAIN}
+								/>
+							</div>
 
+						);
+					})};
 
 					<button onClick={this.handleUser} >{playerText}</button>
 				</div>

@@ -21482,6 +21482,8 @@
 	var ACAPELLAS_PATH = './stems/acapellas';
 	var CIRCUMFERENCE = Math.PI * 2;
 	var GREENISH = "#59b2a1";
+	var DEFAULT_CHANNEL_GAIN = 0.5;
+	
 	var TimeSlices = {
 		FOUR: 4,
 		EIGHT: 8,
@@ -21696,7 +21698,7 @@
 				Object.keys(this.channels).forEach(function (channel) {
 					_this4.channels[channel].subChannels.forEach(function (track, idx) {
 						if (idx === 0) {
-							track.setGain(0.25);
+							track.setGain(DEFAULT_CHANNEL_GAIN);
 						} else {
 							track.setGain(0);
 						}
@@ -21732,7 +21734,7 @@
 				this.resetAllCircles(this.circles);
 				this.circles[trackIdx].ctx.strokeStyle = "#45d9e5";
 				this.muteAllTracks(this.channels.beat.subChannels);
-				selectedTrack.setGain(0.5);
+				selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
 			}
 		}, {
 			key: 'resetAllCircles',
@@ -21751,22 +21753,28 @@
 		}, {
 			key: 'render',
 			value: function render() {
+				var _this5 = this;
 	
 				var playerText = this.state.playing ? "STOP" : "START";
 	
 				if (this.state.buffersLoaded === 3) {
-					debugger;
 					return _react2.default.createElement(
 						'div',
 						null,
-						_react2.default.createElement(_channel2.default, { subChannels: this.channels.beat.subChannels,
-							switchTrack: this.switchTrack,
-							setChannelGain: this.channels.beat.setGain,
-							setCanvas: this.setCanvas }),
-						_react2.default.createElement(_channel2.default, { subChannels: this.channels.melody.subChannels,
-							switchTrack: this.switchTrack,
-							setChannelGain: this.channels.melody.setGain,
-							setCanvas: this.setCanvas }),
+						Object.keys(this.channels).map(function (channel) {
+							return _react2.default.createElement(
+								'div',
+								null,
+								_react2.default.createElement(_channel2.default, { subChannels: _this5.channels[channel].subChannels,
+									channelName: channel,
+									switchTrack: _this5.switchTrack,
+									setChannelGain: _this5.channels[channel].setGain,
+									setCanvas: _this5.setCanvas,
+									defaultGain: DEFAULT_CHANNEL_GAIN
+								})
+							);
+						}),
+						';',
 						_react2.default.createElement(
 							'button',
 							{ onClick: this.handleUser },
@@ -23072,7 +23080,7 @@
 	
 	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
 	
-	    _this.state = { value: 0 };
+	    _this.state = { value: props.defaultGain };
 	    _this.handleChange = _this.handleChange.bind(_this);
 	    _this.setGain = _this.props.setGain;
 	    return _this;
@@ -24468,7 +24476,6 @@
 		function Channel(props) {
 			_classCallCheck(this, Channel);
 	
-			// props.setCanvas();
 			var _this = _possibleConstructorReturn(this, (Channel.__proto__ || Object.getPrototypeOf(Channel)).call(this, props));
 	
 			_this.subChannels = props.subChannels;
@@ -24506,8 +24513,11 @@
 				return _react2.default.createElement(
 					'div',
 					null,
+					this.props.channelName,
 					subChannelsJSX,
-					_react2.default.createElement(_react_slider2.default, { setGain: this.props.setChannelGain })
+					_react2.default.createElement(_react_slider2.default, { setGain: this.props.setChannelGain,
+						defaultGain: this.props.defaultGain
+					})
 				);
 			}
 		}]);

@@ -9,14 +9,10 @@ class Channel extends React.Component {
 		super(props);
 
 
-		// props.setCanvas();
 		this.subChannels = props.subChannels;
 		this.state = {
 			playingTrackIdx: 0
 		};
-
-
-
 
 	}
 
@@ -27,28 +23,28 @@ class Channel extends React.Component {
 
 
 
-
-
-
 	render() {
 
 		let subChannelsJSX = this.subChannels.map((subChannel, idx) => {
 			let playing = (idx === this.state.playingTrackIdx) ? true : false;
 			return (
 				<div key={idx}>
-				<SoundCircle idx={idx}
-					selectTrack={this.selectTrack.bind(this)}
-					playing={playing}
-					setCanvas={this.props.setCanvas}
-					/>
+					<SoundCircle idx={idx}
+						selectTrack={this.selectTrack.bind(this)}
+						playing={playing}
+						setCanvas={this.props.setCanvas}
+						/>
 				</div>
 			);
 		});
 
 		return (
 			<div>
+				{this.props.channelName}
 				{subChannelsJSX}
-				<ReactSlider setGain={this.props.setChannelGain}/>
+				<ReactSlider setGain={this.props.setChannelGain}
+				defaultGain={this.props.defaultGain}
+				/>
 			</div>
 		);
 	}
