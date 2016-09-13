@@ -7,6 +7,13 @@
   background: yellow;
   border: 3px solid red; }
 
+.sound-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 1000px;
+  padding: 10px 10px;
+  background: green; }
+
 .canvas {
   width: 200px;
   height: 200px; }

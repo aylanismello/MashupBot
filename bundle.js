@@ -21472,6 +21472,10 @@
 	
 	var _webAudioScheduler2 = _interopRequireDefault(_webAudioScheduler);
 	
+	var _sound_circle = __webpack_require__(185);
+	
+	var _sound_circle2 = _interopRequireDefault(_sound_circle);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21500,9 +21504,10 @@
 		function Root(props) {
 			_classCallCheck(this, Root);
 	
-			var _this = _possibleConstructorReturn(this, (Root.__proto__ || Object.getPrototypeOf(Root)).call(this, props));
+			// debugger;
 	
-			debugger;
+	
+			var _this = _possibleConstructorReturn(this, (Root.__proto__ || Object.getPrototypeOf(Root)).call(this, props));
 	
 			_this.state = {
 				note: 0,
@@ -21539,12 +21544,26 @@
 			_this.setMasterGain = _this.setMasterGain.bind(_this);
 			_this.switchTrack = _this.switchTrack.bind(_this);
 	
+			_this.makeImages = _this.makeImages.bind(_this);
+			// this.makeImages(this.circle.ctx);
+	
 			_this.createAudioPipeline();
 	
 			return _this;
 		}
 	
 		_createClass(Root, [{
+			key: 'makeImages',
+			value: function makeImages(ctx) {
+				var base_image = new Image();
+				base_image.src = 'images/kendrick2.png';
+	
+				base_image.onload = function () {
+					ctx.drawImage(base_image, 80, 34);
+					// this.createAudioPipeline();
+				};
+			}
+		}, {
 			key: 'drawAtRad',
 			value: function drawAtRad(startingRadian, strokeLength) {
 				var restart = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
@@ -21557,7 +21576,7 @@
 					ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
 				}
 				ctx.beginPath();
-				ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+				ctx.arc(125, 75, 50, startingRadian, startingRadian + strokeLength);
 				ctx.lineWidth = 20;
 				ctx.fillStyle = "black";
 				ctx.fill();
@@ -21593,7 +21612,7 @@
 	
 				var buffers = [path + '/beat.wav', path + '/acapella.wav', path + '/melody.wav'];
 	
-				debugger;
+				// debugger;
 	
 				this.buffers = buffers;
 	
@@ -21693,14 +21712,20 @@
 			}
 		}, {
 			key: 'switchTrack',
-			value: function switchTrack() {
+			value: function switchTrack(e) {
 				// debugger;
 				// return e => {
+				// 	console.log('what the fuck');
+				// };
 				// let newTrackIdx = e.currentTarget.value;
-				var selectedTrackIdx = arguments[0];
-				var selectedTrack = this.beatChannel.subChannels[selectedTrackIdx];
 	
-				console.log('switching to track ' + selectedTrack);
+	
+				// debugger;
+				// let newTrackIdx = 0;
+				var newTrackIdx = arguments[0];
+				var selectedTrack = this.beatChannel.subChannels[newTrackIdx];
+	
+				console.log('switching to track ' + newTrackIdx + ': ' + selectedTrack);
 				console.log('muting all tracks first');
 				this.muteAllTracks(this.beatChannel.subChannels);
 				selectedTrack.setGain(0.5);
@@ -21727,9 +21752,7 @@
 							return _react2.default.createElement(
 								'div',
 								null,
-								_react2.default.createElement(_react_slider2.default, { setGain: subChannel.setGain, idx: idx,
-									switchTrack: _this3.switchTrack }),
-								subChannel.pathName
+								_react2.default.createElement(_sound_circle2.default, { idx: idx, switchTrack: _this3.switchTrack })
 							);
 						}),
 						_react2.default.createElement(
@@ -24394,6 +24417,54 @@
 	    return Date.now() / 1000;
 	  }
 	};
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var SoundCircle = function (_React$Component) {
+		_inherits(SoundCircle, _React$Component);
+	
+		function SoundCircle(props) {
+			_classCallCheck(this, SoundCircle);
+	
+			return _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
+	
+			// this.state = {}
+		}
+	
+		_createClass(SoundCircle, [{
+			key: "render",
+			value: function render() {
+				// debugger;
+				return _react2.default.createElement("div", { className: "sound-circle", value: this.props.idx, onClick: this.props.switchTrack.bind(null, this.props.idx) });
+			}
+		}]);
+	
+		return SoundCircle;
+	}(_react2.default.Component);
+	
+	exports.default = SoundCircle;
 
 /***/ }
 /******/ ]);

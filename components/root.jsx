@@ -4,6 +4,7 @@ import Slider from './slider';
 import ReactSlider from './react_slider';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
+import SoundCircle from './sound_circle';
 
 const path = './stems';
 const beatsPath = './stems/beats';
@@ -25,7 +26,7 @@ class Root extends React.Component {
 
 		super(props);
 
-		debugger;
+		// debugger;
 
 
 		this.state = {
@@ -63,12 +64,26 @@ class Root extends React.Component {
 		this.setMasterGain = this.setMasterGain.bind(this);
 		this.switchTrack = this.switchTrack.bind(this);
 
+		this.makeImages = this.makeImages.bind(this);
+		// this.makeImages(this.circle.ctx);
+
 		this.createAudioPipeline();
 
 
 
 	}
 
+
+	makeImages(ctx) {
+		let base_image = new Image();
+  	base_image.src = 'images/kendrick2.png';
+
+  	base_image.onload = () => {
+	    ctx.drawImage(base_image, 80, 34);
+			// this.createAudioPipeline();
+	  };
+
+	}
 
 
 
@@ -81,7 +96,7 @@ class Root extends React.Component {
 			ctx.clearRect(0, 0, this.circle.canvas.width, this.circle.canvas.height);
 		}
 		ctx.beginPath();
-		ctx.arc(75, 75, 50, startingRadian, startingRadian + strokeLength);
+		ctx.arc(125, 75, 50, startingRadian, startingRadian + strokeLength);
 		ctx.lineWidth = 20;
 		ctx.fillStyle = "black";
 		ctx.fill();
@@ -130,7 +145,7 @@ class Root extends React.Component {
 				`${path}/melody.wav`
 			];
 
-		debugger;
+		// debugger;
 
 		this.buffers = buffers;
 
@@ -237,14 +252,20 @@ class Root extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-	switchTrack() {
+	switchTrack(e) {
 		// debugger;
 		// return e => {
-			// let newTrackIdx = e.currentTarget.value;
-		let selectedTrackIdx = arguments[0];
-		let selectedTrack = this.beatChannel.subChannels[selectedTrackIdx];
+		// 	console.log('what the fuck');
+		// };
+		// let newTrackIdx = e.currentTarget.value;
 
-		console.log(`switching to track ${selectedTrack}`);
+
+		// debugger;
+		// let newTrackIdx = 0;
+		let newTrackIdx = arguments[0];
+		let selectedTrack = this.beatChannel.subChannels[newTrackIdx];
+
+		console.log(`switching to track ${newTrackIdx}: ${selectedTrack}`);
 		console.log(`muting all tracks first`);
 		this.muteAllTracks(this.beatChannel.subChannels);
 		selectedTrack.setGain(0.5);
@@ -269,9 +290,11 @@ class Root extends React.Component {
 					{this.beatChannel.subChannels.map((subChannel, idx) => {
 						return (
 							<div>
-							<ReactSlider setGain={subChannel.setGain} idx={idx}
-								switchTrack={this.switchTrack}/>
-							{subChannel.pathName}
+							{/* <ReactSlider setGain={subChannel.setGain} idx={idx} switchTrack={this.switchTrack}/> */}
+							{/* {subChannel.pathName} */}
+
+								<SoundCircle idx={idx} switchTrack={this.switchTrack}/>
+
 							</div>
 						);
 					})}
