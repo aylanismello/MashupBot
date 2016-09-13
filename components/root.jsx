@@ -4,7 +4,9 @@ import Slider from './slider';
 import ReactSlider from './react_slider';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
-import SoundCircle from './sound_circle';
+// import SoundCircle from './sound_circle';
+import Channel from './channel';
+
 
 const path = './stems';
 const beatsPath = './stems/beats';
@@ -252,7 +254,7 @@ class Root extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-	switchTrack(e) {
+	switchTrack(trackIdx) {
 		// debugger;
 		// return e => {
 		// 	console.log('what the fuck');
@@ -262,7 +264,7 @@ class Root extends React.Component {
 
 		// debugger;
 		// let newTrackIdx = 0;
-		let newTrackIdx = arguments[0];
+		let newTrackIdx = trackIdx;
 		let selectedTrack = this.beatChannel.subChannels[newTrackIdx];
 
 		console.log(`switching to track ${newTrackIdx}: ${selectedTrack}`);
@@ -287,20 +289,24 @@ class Root extends React.Component {
 		if (this.state.loaded){
 			return (
 				<div>
-					{this.beatChannel.subChannels.map((subChannel, idx) => {
+
+
+					<Channel subChannels={this.beatChannel.subChannels}
+						switchTrack={this.switchTrack} setChannelGain={this.beatChannel.setGain}/>
+					{/* {this.beatChannel.subChannels.map((subChannel, idx) => {
 						return (
 							<div>
-							{/* <ReactSlider setGain={subChannel.setGain} idx={idx} switchTrack={this.switchTrack}/> */}
-							{/* {subChannel.pathName} */}
 
 								<SoundCircle idx={idx} switchTrack={this.switchTrack}/>
 
 							</div>
 						);
+
+						 */}
 					})}
 
+					{/* <ReactSlider setGain={this.beatChannel.setGain}/> */}
 
-						{/* <ReactSlider setGain={this.setMasterGain}/> */}
 
 					<button onClick={this.handleUser} >{playerText}</button>
 				</div>
