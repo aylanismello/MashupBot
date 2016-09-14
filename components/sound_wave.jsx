@@ -9,7 +9,11 @@ class SoundWave extends React.Component {
 		super(props);
 		this.canvasId = `${props.channelName}-${props.idx}`;
 		// this.track = props.track;
+		this.changeTrack = this.changeTrack.bind(this);
 		this.draw = this.draw.bind(this);
+
+		this.fillStyle = 'white';
+
 		this.analyser = props.track.analyserNode;
 		this.analyseAmp = this.analyseAmp.bind(this);
 		// debugger;
@@ -31,6 +35,10 @@ class SoundWave extends React.Component {
 		this.canvas = document.querySelector(`#${this.canvasId}`);
 		this.ctx = this.canvas.getContext("2d");
 		this.ctx.clearRect(0, 0, WIDTH, HEIGHT);
+		//
+
+		// debugger;
+
 		this.draw();
 	}
 
@@ -41,7 +49,16 @@ class SoundWave extends React.Component {
 
 		// background
 
-		this.ctx.fillStyle = 'black';
+
+		if (this.props.selectedTracks[this.props.channelName] === this.props.idx) {
+			this.fillStyle = 'black';
+		} else {
+			this.fillStyle = 'white';
+		}
+
+
+		this.ctx.fillStyle = this.fillStyle;
+
 
 		this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
 		this.ctx.lineWidth = 3;
@@ -73,6 +90,11 @@ class SoundWave extends React.Component {
 
 	}
 
+	changeTrack(idx, id) {
+		this.props.selectTrack(this.props.channelName, idx);
+		// debugger;
+		this.props.changeTrack(idx, id);
+	}
 
 
 
@@ -80,7 +102,8 @@ class SoundWave extends React.Component {
 		return (
 			<div>
 				<canvas className="fft" id={this.canvasId}
-					onClick={this.props.selectTrack.bind(null, this.props.idx, this.id)}>
+					// onClick={this.props.selectTrack.bind(null, this.props.idx, this.id)}>
+					onClick={this.changeTrack.bind(null, this.props.idx, this.id)}
 					>
 
 				</canvas>

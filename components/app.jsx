@@ -23,7 +23,7 @@ const TimeSlices = {
 const bpm = 160;
 const TIME_SLICE = 32;
 
-class Root extends React.Component {
+class App extends React.Component {
 
 	constructor(props) {
 
@@ -306,7 +306,10 @@ class Root extends React.Component {
 			// console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
 			//
 			// console.log(``);
-			return;
+
+
+			// THIS IS WHAT QUANTIZES CHANGES
+			// return;
 		}
 
 
@@ -379,4 +382,4 @@ class Root extends React.Component {
 	}
 }
 
-export default Root;
+export default App;

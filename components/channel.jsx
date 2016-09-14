@@ -1,6 +1,7 @@
 import React from 'react';
 import SoundCircle from './sound_circle';
 import SoundWave from './sound_wave';
+import SoundWaveContainer from './sound_wave_container';
 import ReactSlider from './react_slider';
 
 
@@ -27,14 +28,16 @@ class Channel extends React.Component {
 
 	render() {
 
+
+
 		let tracksJSX = this.tracks.map((track, idx) => {
 			let playing = (idx === this.state.playingTrackIdx) ? true : false;
 
 			return (
 				<div key={idx} className="channel">
-					<SoundWave idx={idx}
+					<SoundWaveContainer idx={idx}
 						track={track}
-						selectTrack={this.selectTrack.bind(this)}
+						changeTrack={this.selectTrack.bind(this)}
 						playing={playing}
 						setCanvas={this.props.setCanvas}
 						channelName={this.props.channelName}
