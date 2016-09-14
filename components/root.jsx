@@ -3,7 +3,6 @@ import loader  from 'webaudio-buffer-loader';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
 import Channel from './channel';
-import Visualizer from './visualizer';
 
 
 const path = './stems';
@@ -23,7 +22,6 @@ const TimeSlices = {
 
 const bpm = 160;
 const TIME_SLICE = 32;
-// const timeSlice = TimeSlices.THIRTYTWO;
 
 class Root extends React.Component {
 
@@ -65,8 +63,6 @@ class Root extends React.Component {
 		};
 
 		this.circles = {};
-		// this.circles = [];
-
 
 		this.drawAtRad = this.drawAtRad.bind(this);
 		this.createAudioPipeline = this.createAudioPipeline.bind(this);
@@ -75,10 +71,6 @@ class Root extends React.Component {
 		this.nextTrackIdx = 0;
 		this.nextSoundCircleId = `beat-0`;
 		this.nextChannel = 'beat';
-
-		// this.canvasContexts = [];
-
-
 
 		this.masterGain = this.contxt.createGain();
 		this.masterGain.connect(this.contxt.destination);
@@ -141,17 +133,22 @@ class Root extends React.Component {
 
 	}
 
-	createSubChannel(buffer, pathName, channelGainNode) {
+	createtrack(buffer, pathName, channelGainNode) {
 		let source = this.contxt.createBufferSource();
 		source.buffer = buffer;
 		source.loop = true;
 		let gainNode = this.contxt.createGain();
-		source.connect(gainNode);
+		let analyserNode = this.contxt.createAnalyser();
+		source.connect(analyserNode);
+		analyserNode.connect(gainNode);
+
+		// source.connect(gainNode);
 		gainNode.connect(channelGainNode);
 		channelGainNode.connect(this.masterGain);
 
 		return {
 			source,
+			analyserNode,
 			gainNode,
 			pathName,
 			setGain: (gain) => {
@@ -184,25 +181,27 @@ class Root extends React.Component {
 		};
 
 
-			Object.keys(buffers).forEach(buffer => {
-				this.makeChannelFromBuffers(buffers[buffer], channel => { this.channels[buffer] = channel;} )
+		Object.keys(buffers).forEach(buffer => {
+			this.makeChannelFromBuffers(buffers[buffer], channel => {
+				this.channels[buffer] = channel;
 			});
+		});
 
 
 	}
 
 
 	makeChannelFromBuffers(buffers, setChannel) {
-		let subChannels = [];
+		let tracks = [];
 		let channelGainNode = this.contxt.createGain();
 
 		loader(buffers, this.contxt, (err, loadedBuffers) => {
 			loadedBuffers.forEach((buffer, idx) => {
-				subChannels.push(this.createSubChannel(buffer, buffers[idx], channelGainNode));
+				tracks.push(this.createtrack(buffer, buffers[idx], channelGainNode));
 			});
 
 			let channel = {
-				subChannels,
+				tracks,
 				channelGainNode,
 				setGain: (gain) => {
 					channelGainNode.gain.value = gain;
@@ -268,13 +267,13 @@ class Root extends React.Component {
 
 
 		Object.keys(this.channels).forEach(channel =>{
-			this.channels[channel].subChannels.forEach((track, idx) => {
+			this.channels[channel].tracks.forEach((track, idx) => {
 				if(idx === 0){
 					track.setGain(DEFAULT_CHANNEL_GAIN);
 				} else {
 					track.setGain(0);
 				}
-				// track.source.start(0);
+				track.source.start(0);
 			});
 		});
 
@@ -296,7 +295,10 @@ class Root extends React.Component {
 			let channelToSchedule = this.channelsToSchedule[channel];
 			channelToSchedule.nextTrackIdx = trackIdx;
 			// debugger;
-			channelToSchedule.soundCircleId = soundCircleId;
+
+
+			// channelToSchedule.soundCircleId = soundCircleId;
+
 			channelToSchedule.isScheduled = isScheduled;
 
 			// console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
@@ -308,13 +310,14 @@ class Root extends React.Component {
 		}
 
 
-		let selectedTrack = this.channels[channel].subChannels[trackIdx];
+		let selectedTrack = this.channels[channel].tracks[trackIdx];
 
 		this.resetAllCircles(this.circles);
-		// console.log(`received ${soundCircleId}`);
-		this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 
-		this.muteAllTracks(this.channels[channel].subChannels);
+
+		// this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
+
+		this.muteAllTracks(this.channels[channel].tracks);
 		selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
 
 	}
@@ -328,8 +331,8 @@ class Root extends React.Component {
 	}
 
 
-	muteAllTracks(subChannels) {
-		subChannels.forEach(channel => {
+	muteAllTracks(tracks) {
+		tracks.forEach(channel => {
 			channel.setGain(0);
 
 		});
@@ -349,7 +352,7 @@ class Root extends React.Component {
 
 							<div 	className="channel">
 								<Channel
-									subChannels={this.channels[channel].subChannels}
+									tracks={this.channels[channel].tracks}
 									channelName={channel}
 									switchTrack={this.switchTrack}
 									setChannelGain={this.channels[channel].setGain}
@@ -363,7 +366,6 @@ class Root extends React.Component {
 					})};
 
 					<button onClick={this.handleUser} >{playerText}</button>
-					<Visualizer ctx={this.contxt} masterGain={this.masterGain}/>
 				</div>
 			);
 	 	} else {

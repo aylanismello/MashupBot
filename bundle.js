@@ -21468,10 +21468,6 @@
 	
 	var _channel2 = _interopRequireDefault(_channel);
 	
-	var _visualizer = __webpack_require__(186);
-	
-	var _visualizer2 = _interopRequireDefault(_visualizer);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21497,7 +21493,6 @@
 	
 	var bpm = 160;
 	var TIME_SLICE = 32;
-	// const timeSlice = TimeSlices.THIRTYTWO;
 	
 	var Root = function (_React$Component) {
 		_inherits(Root, _React$Component);
@@ -21539,8 +21534,6 @@
 			};
 	
 			_this.circles = {};
-			// this.circles = [];
-	
 	
 			_this.drawAtRad = _this.drawAtRad.bind(_this);
 			_this.createAudioPipeline = _this.createAudioPipeline.bind(_this);
@@ -21549,9 +21542,6 @@
 			_this.nextTrackIdx = 0;
 			_this.nextSoundCircleId = 'beat-0';
 			_this.nextChannel = 'beat';
-	
-			// this.canvasContexts = [];
-	
 	
 			_this.masterGain = _this.contxt.createGain();
 			_this.masterGain.connect(_this.contxt.destination);
@@ -21616,18 +21606,23 @@
 				});
 			}
 		}, {
-			key: 'createSubChannel',
-			value: function createSubChannel(buffer, pathName, channelGainNode) {
+			key: 'createtrack',
+			value: function createtrack(buffer, pathName, channelGainNode) {
 				var source = this.contxt.createBufferSource();
 				source.buffer = buffer;
 				source.loop = true;
 				var gainNode = this.contxt.createGain();
-				source.connect(gainNode);
+				var analyserNode = this.contxt.createAnalyser();
+				source.connect(analyserNode);
+				analyserNode.connect(gainNode);
+	
+				// source.connect(gainNode);
 				gainNode.connect(channelGainNode);
 				channelGainNode.connect(this.masterGain);
 	
 				return {
 					source: source,
+					analyserNode: analyserNode,
 					gainNode: gainNode,
 					pathName: pathName,
 					setGain: function setGain(gain) {
@@ -21659,16 +21654,16 @@
 			value: function makeChannelFromBuffers(buffers, setChannel) {
 				var _this4 = this;
 	
-				var subChannels = [];
+				var tracks = [];
 				var channelGainNode = this.contxt.createGain();
 	
 				(0, _webaudioBufferLoader2.default)(buffers, this.contxt, function (err, loadedBuffers) {
 					loadedBuffers.forEach(function (buffer, idx) {
-						subChannels.push(_this4.createSubChannel(buffer, buffers[idx], channelGainNode));
+						tracks.push(_this4.createtrack(buffer, buffers[idx], channelGainNode));
 					});
 	
 					var channel = {
-						subChannels: subChannels,
+						tracks: tracks,
 						channelGainNode: channelGainNode,
 						setGain: function setGain(gain) {
 							channelGainNode.gain.value = gain;
@@ -21733,13 +21728,13 @@
 				this.setState({ playing: true });
 	
 				Object.keys(this.channels).forEach(function (channel) {
-					_this6.channels[channel].subChannels.forEach(function (track, idx) {
+					_this6.channels[channel].tracks.forEach(function (track, idx) {
 						if (idx === 0) {
 							track.setGain(DEFAULT_CHANNEL_GAIN);
 						} else {
 							track.setGain(0);
 						}
-						// track.source.start(0);
+						track.source.start(0);
 					});
 				});
 	
@@ -21766,7 +21761,10 @@
 					var channelToSchedule = this.channelsToSchedule[channel];
 					channelToSchedule.nextTrackIdx = trackIdx;
 					// debugger;
-					channelToSchedule.soundCircleId = soundCircleId;
+	
+	
+					// channelToSchedule.soundCircleId = soundCircleId;
+	
 					channelToSchedule.isScheduled = isScheduled;
 	
 					// console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
@@ -21777,13 +21775,13 @@
 					return;
 				}
 	
-				var selectedTrack = this.channels[channel].subChannels[trackIdx];
+				var selectedTrack = this.channels[channel].tracks[trackIdx];
 	
 				this.resetAllCircles(this.circles);
-				// console.log(`received ${soundCircleId}`);
-				this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 	
-				this.muteAllTracks(this.channels[channel].subChannels);
+				// this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
+	
+				this.muteAllTracks(this.channels[channel].tracks);
 				selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
 			}
 		}, {
@@ -21795,8 +21793,8 @@
 			}
 		}, {
 			key: 'muteAllTracks',
-			value: function muteAllTracks(subChannels) {
-				subChannels.forEach(function (channel) {
+			value: function muteAllTracks(tracks) {
+				tracks.forEach(function (channel) {
 					channel.setGain(0);
 				});
 			}
@@ -21816,7 +21814,7 @@
 								'div',
 								{ className: 'channel' },
 								_react2.default.createElement(_channel2.default, {
-									subChannels: _this7.channels[channel].subChannels,
+									tracks: _this7.channels[channel].tracks,
 									channelName: channel,
 									switchTrack: _this7.switchTrack,
 									setChannelGain: _this7.channels[channel].setGain,
@@ -21831,8 +21829,7 @@
 							'button',
 							{ onClick: this.handleUser },
 							playerText
-						),
-						_react2.default.createElement(_visualizer2.default, { ctx: this.contxt, masterGain: this.masterGain })
+						)
 					);
 				} else {
 					return _react2.default.createElement(
@@ -24235,6 +24232,10 @@
 	
 	var _sound_circle2 = _interopRequireDefault(_sound_circle);
 	
+	var _sound_wave = __webpack_require__(187);
+	
+	var _sound_wave2 = _interopRequireDefault(_sound_wave);
+	
 	var _react_slider = __webpack_require__(185);
 	
 	var _react_slider2 = _interopRequireDefault(_react_slider);
@@ -24255,7 +24256,7 @@
 	
 			var _this = _possibleConstructorReturn(this, (Channel.__proto__ || Object.getPrototypeOf(Channel)).call(this, props));
 	
-			_this.subChannels = props.subChannels;
+			_this.tracks = props.tracks;
 			_this.state = {
 				playingTrackIdx: 0
 			};
@@ -24266,6 +24267,7 @@
 		_createClass(Channel, [{
 			key: 'selectTrack',
 			value: function selectTrack(trackIdx, id) {
+				console.log('clicked track ' + id);
 				this.props.switchTrack(trackIdx, id, this.props.channelName);
 				this.setState({ playingTrackIdx: trackIdx });
 			}
@@ -24274,12 +24276,14 @@
 			value: function render() {
 				var _this2 = this;
 	
-				var subChannelsJSX = this.subChannels.map(function (subChannel, idx) {
+				var tracksJSX = this.tracks.map(function (track, idx) {
 					var playing = idx === _this2.state.playingTrackIdx ? true : false;
+	
 					return _react2.default.createElement(
 						'div',
-						{ key: idx },
-						_react2.default.createElement(_sound_circle2.default, { idx: idx,
+						{ key: idx, className: 'channel' },
+						_react2.default.createElement(_sound_wave2.default, { idx: idx,
+							track: track,
 							selectTrack: _this2.selectTrack.bind(_this2),
 							playing: playing,
 							setCanvas: _this2.props.setCanvas,
@@ -24291,8 +24295,12 @@
 				return _react2.default.createElement(
 					'div',
 					null,
-					this.props.channelName,
-					subChannelsJSX,
+					_react2.default.createElement(
+						'h1',
+						{ className: 'channel-name' },
+						this.props.channelName
+					),
+					tracksJSX,
 					_react2.default.createElement(_react_slider2.default, { setGain: this.props.setChannelGain,
 						defaultGain: this.props.defaultGain
 					})
@@ -24338,6 +24346,7 @@
 			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
 	
 			_this.id = props.channelName + "-" + props.idx;
+	
 			return _this;
 		}
 	
@@ -24580,7 +24589,8 @@
 	exports.default = ReactSlider;
 
 /***/ },
-/* 186 */
+/* 186 */,
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24595,10 +24605,6 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _webaudioBufferLoader = __webpack_require__(173);
-	
-	var _webaudioBufferLoader2 = _interopRequireDefault(_webaudioBufferLoader);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -24610,79 +24616,36 @@
 	var WIDTH = 400;
 	var HEIGHT = 400;
 	
-	var Visualizer = function (_React$Component) {
-		_inherits(Visualizer, _React$Component);
+	var SoundWave = function (_React$Component) {
+		_inherits(SoundWave, _React$Component);
 	
-		function Visualizer(props) {
-			_classCallCheck(this, Visualizer);
+		function SoundWave(props) {
+			_classCallCheck(this, SoundWave);
 	
-			var _this = _possibleConstructorReturn(this, (Visualizer.__proto__ || Object.getPrototypeOf(Visualizer)).call(this, props));
+			var _this = _possibleConstructorReturn(this, (SoundWave.__proto__ || Object.getPrototypeOf(SoundWave)).call(this, props));
 	
-			_this.canvasId = "fft";
+			_this.canvasId = props.channelName + '-' + props.idx;
+			// this.track = props.track;
 			_this.draw = _this.draw.bind(_this);
-			_this.prepDraw = _this.prepDraw.bind(_this);
-			_this.analyseFreq = _this.analyseFreq.bind(_this);
-	
-			_this.analyseAmp(_this.props.ctx, _this.props.masterGain);
-			// this.analyseFreq(this.props.ctx, this.props.masterGain);
-	
+			_this.analyser = props.track.analyserNode;
+			_this.analyseAmp = _this.analyseAmp.bind(_this);
+			// debugger;
 	
 			return _this;
 		}
 	
-		_createClass(Visualizer, [{
-			key: 'analyseFreq',
-			value: function analyseFreq(ctx, masterGain) {
-				var _this2 = this;
-	
-				this.analyser = ctx.createAnalyser();
-	
-				this.analyser.fftSize = 256;
-				this.bufferLength = this.analyser.frequencyBinCount;
-				this.dataArray = new Uint8Array(this.bufferLength);
-	
-				(0, _webaudioBufferLoader2.default)(['../stems/beats/backseat.wav'], ctx, function (err, loadedBuffers) {
-	
-					var source = ctx.createBufferSource();
-					source.buffer = loadedBuffers[0];
-					source.loop = true;
-	
-					source.connect(_this2.analyser);
-					_this2.analyser.connect(masterGain);
-	
-					// source.connect(masterGain);
-					source.start(0);
-					_this2.prepDraw();
-				});
+		_createClass(SoundWave, [{
+			key: 'componentDidMount',
+			value: function componentDidMount() {
+				this.analyseAmp();
 			}
 		}, {
 			key: 'analyseAmp',
-			value: function analyseAmp(ctx, masterGain) {
-				var _this3 = this;
-	
-				this.analyser = ctx.createAnalyser();
-	
-				// debugger;
-	
-				// masterGain.connect(this.analyser);
-	
+			value: function analyseAmp() {
 				this.analyser.fftSize = 2048;
 				this.bufferLength = this.analyser.frequencyBinCount;
 				this.dataArray = new Uint8Array(this.bufferLength);
-	
-				(0, _webaudioBufferLoader2.default)(['../stems/beats/backseat.wav'], ctx, function (err, loadedBuffers) {
-	
-					var source = ctx.createBufferSource();
-					source.buffer = loadedBuffers[0];
-					source.loop = true;
-	
-					source.connect(_this3.analyser);
-					_this3.analyser.connect(masterGain);
-	
-					// source.connect(masterGain);
-					source.start(0);
-					_this3.prepDraw();
-				});
+				this.prepDraw();
 			}
 		}, {
 			key: 'prepDraw',
@@ -24695,13 +24658,16 @@
 		}, {
 			key: 'draw',
 			value: function draw() {
-				// debugger;
 				var drawFFT = requestAnimationFrame(this.draw);
 				this.analyser.getByteTimeDomainData(this.dataArray);
 	
-				this.ctx.fillStyle = '#f7f7f7';
+				// background
+	
+				this.ctx.fillStyle = 'black';
+	
 				this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
 				this.ctx.lineWidth = 3;
+	
 				this.ctx.strokeStyle = "#59b2a1";
 				this.ctx.beginPath();
 	
@@ -24725,8 +24691,6 @@
 	
 				this.ctx.lineTo(WIDTH, HEIGHT / 2);
 				this.ctx.stroke();
-	
-				// this.draw();
 			}
 		}, {
 			key: 'render',
@@ -24734,15 +24698,20 @@
 				return _react2.default.createElement(
 					'div',
 					null,
-					_react2.default.createElement('canvas', { id: this.canvasId })
+					_react2.default.createElement(
+						'canvas',
+						{ className: 'fft', id: this.canvasId,
+							onClick: this.props.selectTrack.bind(null, this.props.idx, this.id) },
+						'>'
+					)
 				);
 			}
 		}]);
 	
-		return Visualizer;
+		return SoundWave;
 	}(_react2.default.Component);
 	
-	exports.default = Visualizer;
+	exports.default = SoundWave;
 
 /***/ }
 /******/ ]);

@@ -6,6 +6,8 @@ class SoundCircle extends React.Component {
  constructor(props) {
 	 super(props);
 	 this.id = `${props.channelName}-${props.idx}`;
+
+
  }
 
  componentDidMount() {
