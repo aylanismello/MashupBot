@@ -15,6 +15,13 @@ img {
 .mix-board {
   display: flex; }
 
+#fft {
+  border-radius: 1000px;
+  /* height: 400px; */
+  width: 200px;
+  /* height: auto; */
+  height: 200px; }
+
 .track-pic {
   width: 200px;
   height: 200px;

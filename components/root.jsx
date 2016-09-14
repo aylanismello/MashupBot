@@ -3,6 +3,7 @@ import loader  from 'webaudio-buffer-loader';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
 import Channel from './channel';
+import Visualizer from './visualizer';
 
 
 const path = './stems';
@@ -273,7 +274,7 @@ class Root extends React.Component {
 				} else {
 					track.setGain(0);
 				}
-				track.source.start(0);
+				// track.source.start(0);
 			});
 		});
 
@@ -298,11 +299,11 @@ class Root extends React.Component {
 			channelToSchedule.soundCircleId = soundCircleId;
 			channelToSchedule.isScheduled = isScheduled;
 
-			console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
-			console.log(`circle id of ${channelToSchedule.soundCircleId}`);
-			console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
-
-			console.log(``);
+			// console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
+			// console.log(`circle id of ${channelToSchedule.soundCircleId}`);
+			// console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
+			//
+			// console.log(``);
 			return;
 		}
 
@@ -310,7 +311,7 @@ class Root extends React.Component {
 		let selectedTrack = this.channels[channel].subChannels[trackIdx];
 
 		this.resetAllCircles(this.circles);
-		console.log(`received ${soundCircleId}`);
+		// console.log(`received ${soundCircleId}`);
 		this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 
 		this.muteAllTracks(this.channels[channel].subChannels);
@@ -362,6 +363,7 @@ class Root extends React.Component {
 					})};
 
 					<button onClick={this.handleUser} >{playerText}</button>
+					<Visualizer ctx={this.contxt} masterGain={this.masterGain}/>
 				</div>
 			);
 	 	} else {

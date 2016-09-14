@@ -21456,17 +21456,21 @@
 	
 	var _webaudioBufferLoader2 = _interopRequireDefault(_webaudioBufferLoader);
 	
-	var _progress_circle = __webpack_require__(178);
+	var _progress_circle = __webpack_require__(176);
 	
 	var _progress_circle2 = _interopRequireDefault(_progress_circle);
 	
-	var _webAudioScheduler = __webpack_require__(179);
+	var _webAudioScheduler = __webpack_require__(177);
 	
 	var _webAudioScheduler2 = _interopRequireDefault(_webAudioScheduler);
 	
-	var _channel = __webpack_require__(186);
+	var _channel = __webpack_require__(183);
 	
 	var _channel2 = _interopRequireDefault(_channel);
+	
+	var _visualizer = __webpack_require__(186);
+	
+	var _visualizer2 = _interopRequireDefault(_visualizer);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -21735,7 +21739,7 @@
 						} else {
 							track.setGain(0);
 						}
-						track.source.start(0);
+						// track.source.start(0);
 					});
 				});
 	
@@ -21765,18 +21769,18 @@
 					channelToSchedule.soundCircleId = soundCircleId;
 					channelToSchedule.isScheduled = isScheduled;
 	
-					console.log('switching to ' + channelToSchedule.nextTrackIdx);
-					console.log('circle id of ' + channelToSchedule.soundCircleId);
-					console.log('isScheduled? ' + channelToSchedule.isScheduled);
-	
-					console.log('');
+					// console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
+					// console.log(`circle id of ${channelToSchedule.soundCircleId}`);
+					// console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
+					//
+					// console.log(``);
 					return;
 				}
 	
 				var selectedTrack = this.channels[channel].subChannels[trackIdx];
 	
 				this.resetAllCircles(this.circles);
-				console.log('received ' + soundCircleId);
+				// console.log(`received ${soundCircleId}`);
 				this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
 	
 				this.muteAllTracks(this.channels[channel].subChannels);
@@ -21827,7 +21831,8 @@
 							'button',
 							{ onClick: this.handleUser },
 							playerText
-						)
+						),
+						_react2.default.createElement(_visualizer2.default, { ctx: this.contxt, masterGain: this.masterGain })
 					);
 				} else {
 					return _react2.default.createElement(
@@ -23096,218 +23101,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(175).setImmediate, __webpack_require__(175).clearImmediate))
 
 /***/ },
-/* 176 */,
-/* 177 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var ReactSlider = function (_React$Component) {
-	  _inherits(ReactSlider, _React$Component);
-	
-	  function ReactSlider(props) {
-	    _classCallCheck(this, ReactSlider);
-	
-	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
-	
-	    _this.state = { value: props.defaultGain };
-	    _this.handleChange = _this.handleChange.bind(_this);
-	    _this.setGain = _this.props.setGain;
-	    return _this;
-	  }
-	
-	  _createClass(ReactSlider, [{
-	    key: "handleChange",
-	    value: function handleChange(x, y) {
-	      this.setState({ value: y });
-	      this.setGain(y);
-	    }
-	  }, {
-	    key: "render",
-	    value: function render() {
-	      return _react2.default.createElement(
-	        "div",
-	        null,
-	        _react2.default.createElement(Slider, {
-	          radius: 140,
-	          border: 70,
-	          value: this.state.value,
-	          onChange: this.handleChange })
-	      );
-	    }
-	  }]);
-	
-	  return ReactSlider;
-	}(_react2.default.Component);
-	
-	var Slider = function (_React$Component2) {
-	  _inherits(Slider, _React$Component2);
-	
-	  function Slider(props) {
-	    _classCallCheck(this, Slider);
-	
-	    var _this2 = _possibleConstructorReturn(this, (Slider.__proto__ || Object.getPrototypeOf(Slider)).call(this, props));
-	
-	    _this2.state = { isPinching: false };
-	    _this2.handleMouseUp = _this2.handleMouseUp.bind(_this2);
-	    _this2.handleMouseDown = _this2.handleMouseDown.bind(_this2);
-	    _this2.handleMouseMove = _this2.handleMouseMove.bind(_this2);
-	
-	    return _this2;
-	  }
-	
-	  _createClass(Slider, [{
-	    key: "componentDidMount",
-	    value: function componentDidMount() {
-	      this.x = 0;
-	      this.y = 0;
-	
-	      document.addEventListener("mousemove", this.handleMouseMove);
-	      document.addEventListener("mouseup", this.handleMouseUp);
-	    }
-	  }, {
-	    key: "componentWillUnmount",
-	    value: function componentWillUnmount() {
-	      document.removeEventListener("mousemove", this.handleMouseMove);
-	      document.removeEventListener("mouseup", this.handleMouseUp);
-	    }
-	  }, {
-	    key: "handleMouseUp",
-	    value: function handleMouseUp() {
-	      this.setState({ isPinching: false });
-	    }
-	  }, {
-	    key: "handleMouseDown",
-	    value: function handleMouseDown(e) {
-	      e.preventDefault();
-	
-	      var _potar$getBoundingCli = this.potar.getBoundingClientRect();
-	
-	      var left = _potar$getBoundingCli.left;
-	      var top = _potar$getBoundingCli.top;
-	      var width = _potar$getBoundingCli.width;
-	      var height = _potar$getBoundingCli.height;
-	
-	
-	      this.x = e.pageX - (left + width / 2);
-	      this.y = top + height / 2 - e.pageY;
-	
-	      this.setState({ isPinching: true });
-	    }
-	  }, {
-	    key: "handleMouseMove",
-	    value: function handleMouseMove(e) {
-	      if (this.state.isPinching) {
-	        var _potar$getBoundingCli2 = this.potar.getBoundingClientRect();
-	
-	        var left = _potar$getBoundingCli2.left;
-	        var top = _potar$getBoundingCli2.top;
-	        var width = _potar$getBoundingCli2.width;
-	        var height = _potar$getBoundingCli2.height;
-	
-	
-	        var x = e.pageX - (left + width / 2);
-	        var y = top + height / 2 - e.pageY;
-	
-	        var dx = (x - this.x) / 100;
-	        var dy = (y - this.y) / 100;
-	
-	        this.x = x;
-	        this.y = y;
-	
-	        if (this.props.onChange) {
-	          var xValue = this.props.value + dx;
-	          var yValue = this.props.value + dy;
-	          if (xValue < 0) {
-	            xValue = 0;
-	          }
-	
-	          if (xValue > 1) {
-	            xValue = 1;
-	          }
-	
-	          if (yValue < 0) {
-	            yValue = 0;
-	          }
-	
-	          if (yValue > 1) {
-	            yValue = 1;
-	          }
-	
-	          this.props.onChange(xValue, yValue);
-	        }
-	      }
-	    }
-	  }, {
-	    key: "render",
-	    value: function render() {
-	      var _this3 = this;
-	
-	      var _props = this.props;
-	      var radius = _props.radius;
-	      var border = _props.border;
-	      var value = _props.value;
-	
-	      var p = 2 * Math.PI * (radius - border / 2);
-	
-	      var strokeWidth = border;
-	      var strokeDashoffset = p * (1 - value);
-	      var strokeDasharray = p;
-	
-	      return _react2.default.createElement(
-	        "svg",
-	        {
-	          className: "Slider",
-	          ref: function ref(potar) {
-	            _this3.potar = potar;
-	          },
-	          viewBox: "0 0 " + radius * 2 + " " + radius * 2,
-	          onMouseDown: this.handleMouseDown },
-	        _react2.default.createElement("circle", {
-	          className: "Slider-circle",
-	          style: { strokeWidth: strokeWidth },
-	          r: radius - border / 2,
-	          cx: radius,
-	          cy: radius }),
-	        _react2.default.createElement("circle", {
-	          className: "Slider-bar",
-	          style: {
-	            strokeWidth: strokeWidth,
-	            strokeDashoffset: strokeDashoffset,
-	            strokeDasharray: strokeDasharray
-	          },
-	          r: radius - border / 2,
-	          cx: radius,
-	          cy: radius })
-	      );
-	    }
-	  }]);
-	
-	  return Slider;
-	}(_react2.default.Component);
-	
-	exports.default = ReactSlider;
-
-/***/ },
-/* 178 */
+/* 176 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23893,22 +23687,22 @@
 	exports.default = ProgressCircle;
 
 /***/ },
-/* 179 */
+/* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(180);
+	module.exports = __webpack_require__(178);
 
 
 /***/ },
-/* 180 */
+/* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	module.exports = __webpack_require__(181);
+	module.exports = __webpack_require__(179);
 
 /***/ },
-/* 181 */
+/* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {"use strict";
@@ -23921,9 +23715,9 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var events = __webpack_require__(182);
-	var defaults = __webpack_require__(183);
-	var defaultContext = __webpack_require__(184);
+	var events = __webpack_require__(180);
+	var defaults = __webpack_require__(181);
+	var defaultContext = __webpack_require__(182);
 	
 	var WebAudioScheduler = function (_events$EventEmitter) {
 	  _inherits(WebAudioScheduler, _events$EventEmitter);
@@ -24090,7 +23884,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 182 */
+/* 180 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -24398,7 +24192,7 @@
 
 
 /***/ },
-/* 183 */
+/* 181 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -24410,7 +24204,7 @@
 	module.exports = defaults;
 
 /***/ },
-/* 184 */
+/* 182 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -24422,71 +24216,7 @@
 	};
 
 /***/ },
-/* 185 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var SoundCircle = function (_React$Component) {
-		_inherits(SoundCircle, _React$Component);
-	
-		function SoundCircle(props) {
-			_classCallCheck(this, SoundCircle);
-	
-			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
-	
-			_this.id = props.channelName + "-" + props.idx;
-			return _this;
-		}
-	
-		_createClass(SoundCircle, [{
-			key: "componentDidMount",
-			value: function componentDidMount() {
-				this.props.setCanvas(this.id, this.props.idx);
-			}
-		}, {
-			key: "render",
-			value: function render() {
-				var text = this.props.playing ? "ON" : "OFF";
-	
-				return _react2.default.createElement(
-					"div",
-					{ className: "track-pic" },
-					_react2.default.createElement(
-						"canvas",
-						{ className: "sound-circle", id: this.id,
-							onClick: this.props.selectTrack.bind(null, this.props.idx, this.id) },
-						text
-					)
-				);
-			}
-		}]);
-	
-		return SoundCircle;
-	}(_react2.default.Component);
-	
-	exports.default = SoundCircle;
-
-/***/ },
-/* 186 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -24501,11 +24231,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _sound_circle = __webpack_require__(185);
+	var _sound_circle = __webpack_require__(184);
 	
 	var _sound_circle2 = _interopRequireDefault(_sound_circle);
 	
-	var _react_slider = __webpack_require__(177);
+	var _react_slider = __webpack_require__(185);
 	
 	var _react_slider2 = _interopRequireDefault(_react_slider);
 	
@@ -24574,6 +24304,445 @@
 	}(_react2.default.Component);
 	
 	exports.default = Channel;
+
+/***/ },
+/* 184 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var SoundCircle = function (_React$Component) {
+		_inherits(SoundCircle, _React$Component);
+	
+		function SoundCircle(props) {
+			_classCallCheck(this, SoundCircle);
+	
+			var _this = _possibleConstructorReturn(this, (SoundCircle.__proto__ || Object.getPrototypeOf(SoundCircle)).call(this, props));
+	
+			_this.id = props.channelName + "-" + props.idx;
+			return _this;
+		}
+	
+		_createClass(SoundCircle, [{
+			key: "componentDidMount",
+			value: function componentDidMount() {
+				this.props.setCanvas(this.id, this.props.idx);
+			}
+		}, {
+			key: "render",
+			value: function render() {
+				var text = this.props.playing ? "ON" : "OFF";
+	
+				return _react2.default.createElement(
+					"div",
+					{ className: "track-pic" },
+					_react2.default.createElement(
+						"canvas",
+						{ className: "sound-circle", id: this.id,
+							onClick: this.props.selectTrack.bind(null, this.props.idx, this.id) },
+						text
+					)
+				);
+			}
+		}]);
+	
+		return SoundCircle;
+	}(_react2.default.Component);
+	
+	exports.default = SoundCircle;
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ReactSlider = function (_React$Component) {
+	  _inherits(ReactSlider, _React$Component);
+	
+	  function ReactSlider(props) {
+	    _classCallCheck(this, ReactSlider);
+	
+	    var _this = _possibleConstructorReturn(this, (ReactSlider.__proto__ || Object.getPrototypeOf(ReactSlider)).call(this, props));
+	
+	    _this.state = { value: props.defaultGain };
+	    _this.handleChange = _this.handleChange.bind(_this);
+	    _this.setGain = _this.props.setGain;
+	    return _this;
+	  }
+	
+	  _createClass(ReactSlider, [{
+	    key: "handleChange",
+	    value: function handleChange(x, y) {
+	      this.setState({ value: y });
+	      this.setGain(y);
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      return _react2.default.createElement(
+	        "div",
+	        null,
+	        _react2.default.createElement(Slider, {
+	          radius: 140,
+	          border: 70,
+	          value: this.state.value,
+	          onChange: this.handleChange })
+	      );
+	    }
+	  }]);
+	
+	  return ReactSlider;
+	}(_react2.default.Component);
+	
+	var Slider = function (_React$Component2) {
+	  _inherits(Slider, _React$Component2);
+	
+	  function Slider(props) {
+	    _classCallCheck(this, Slider);
+	
+	    var _this2 = _possibleConstructorReturn(this, (Slider.__proto__ || Object.getPrototypeOf(Slider)).call(this, props));
+	
+	    _this2.state = { isPinching: false };
+	    _this2.handleMouseUp = _this2.handleMouseUp.bind(_this2);
+	    _this2.handleMouseDown = _this2.handleMouseDown.bind(_this2);
+	    _this2.handleMouseMove = _this2.handleMouseMove.bind(_this2);
+	
+	    return _this2;
+	  }
+	
+	  _createClass(Slider, [{
+	    key: "componentDidMount",
+	    value: function componentDidMount() {
+	      this.x = 0;
+	      this.y = 0;
+	
+	      document.addEventListener("mousemove", this.handleMouseMove);
+	      document.addEventListener("mouseup", this.handleMouseUp);
+	    }
+	  }, {
+	    key: "componentWillUnmount",
+	    value: function componentWillUnmount() {
+	      document.removeEventListener("mousemove", this.handleMouseMove);
+	      document.removeEventListener("mouseup", this.handleMouseUp);
+	    }
+	  }, {
+	    key: "handleMouseUp",
+	    value: function handleMouseUp() {
+	      this.setState({ isPinching: false });
+	    }
+	  }, {
+	    key: "handleMouseDown",
+	    value: function handleMouseDown(e) {
+	      e.preventDefault();
+	
+	      var _potar$getBoundingCli = this.potar.getBoundingClientRect();
+	
+	      var left = _potar$getBoundingCli.left;
+	      var top = _potar$getBoundingCli.top;
+	      var width = _potar$getBoundingCli.width;
+	      var height = _potar$getBoundingCli.height;
+	
+	
+	      this.x = e.pageX - (left + width / 2);
+	      this.y = top + height / 2 - e.pageY;
+	
+	      this.setState({ isPinching: true });
+	    }
+	  }, {
+	    key: "handleMouseMove",
+	    value: function handleMouseMove(e) {
+	      if (this.state.isPinching) {
+	        var _potar$getBoundingCli2 = this.potar.getBoundingClientRect();
+	
+	        var left = _potar$getBoundingCli2.left;
+	        var top = _potar$getBoundingCli2.top;
+	        var width = _potar$getBoundingCli2.width;
+	        var height = _potar$getBoundingCli2.height;
+	
+	
+	        var x = e.pageX - (left + width / 2);
+	        var y = top + height / 2 - e.pageY;
+	
+	        var dx = (x - this.x) / 100;
+	        var dy = (y - this.y) / 100;
+	
+	        this.x = x;
+	        this.y = y;
+	
+	        if (this.props.onChange) {
+	          var xValue = this.props.value + dx;
+	          var yValue = this.props.value + dy;
+	          if (xValue < 0) {
+	            xValue = 0;
+	          }
+	
+	          if (xValue > 1) {
+	            xValue = 1;
+	          }
+	
+	          if (yValue < 0) {
+	            yValue = 0;
+	          }
+	
+	          if (yValue > 1) {
+	            yValue = 1;
+	          }
+	
+	          this.props.onChange(xValue, yValue);
+	        }
+	      }
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      var _this3 = this;
+	
+	      var _props = this.props;
+	      var radius = _props.radius;
+	      var border = _props.border;
+	      var value = _props.value;
+	
+	      var p = 2 * Math.PI * (radius - border / 2);
+	
+	      var strokeWidth = border;
+	      var strokeDashoffset = p * (1 - value);
+	      var strokeDasharray = p;
+	
+	      return _react2.default.createElement(
+	        "svg",
+	        {
+	          className: "Slider",
+	          ref: function ref(potar) {
+	            _this3.potar = potar;
+	          },
+	          viewBox: "0 0 " + radius * 2 + " " + radius * 2,
+	          onMouseDown: this.handleMouseDown },
+	        _react2.default.createElement("circle", {
+	          className: "Slider-circle",
+	          style: { strokeWidth: strokeWidth },
+	          r: radius - border / 2,
+	          cx: radius,
+	          cy: radius }),
+	        _react2.default.createElement("circle", {
+	          className: "Slider-bar",
+	          style: {
+	            strokeWidth: strokeWidth,
+	            strokeDashoffset: strokeDashoffset,
+	            strokeDasharray: strokeDasharray
+	          },
+	          r: radius - border / 2,
+	          cx: radius,
+	          cy: radius })
+	      );
+	    }
+	  }]);
+	
+	  return Slider;
+	}(_react2.default.Component);
+	
+	exports.default = ReactSlider;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _webaudioBufferLoader = __webpack_require__(173);
+	
+	var _webaudioBufferLoader2 = _interopRequireDefault(_webaudioBufferLoader);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var WIDTH = 400;
+	var HEIGHT = 400;
+	
+	var Visualizer = function (_React$Component) {
+		_inherits(Visualizer, _React$Component);
+	
+		function Visualizer(props) {
+			_classCallCheck(this, Visualizer);
+	
+			var _this = _possibleConstructorReturn(this, (Visualizer.__proto__ || Object.getPrototypeOf(Visualizer)).call(this, props));
+	
+			_this.canvasId = "fft";
+			_this.draw = _this.draw.bind(_this);
+			_this.prepDraw = _this.prepDraw.bind(_this);
+			_this.analyseFreq = _this.analyseFreq.bind(_this);
+	
+			_this.analyseAmp(_this.props.ctx, _this.props.masterGain);
+			// this.analyseFreq(this.props.ctx, this.props.masterGain);
+	
+	
+			return _this;
+		}
+	
+		_createClass(Visualizer, [{
+			key: 'analyseFreq',
+			value: function analyseFreq(ctx, masterGain) {
+				var _this2 = this;
+	
+				this.analyser = ctx.createAnalyser();
+	
+				this.analyser.fftSize = 256;
+				this.bufferLength = this.analyser.frequencyBinCount;
+				this.dataArray = new Uint8Array(this.bufferLength);
+	
+				(0, _webaudioBufferLoader2.default)(['../stems/beats/backseat.wav'], ctx, function (err, loadedBuffers) {
+	
+					var source = ctx.createBufferSource();
+					source.buffer = loadedBuffers[0];
+					source.loop = true;
+	
+					source.connect(_this2.analyser);
+					_this2.analyser.connect(masterGain);
+	
+					// source.connect(masterGain);
+					source.start(0);
+					_this2.prepDraw();
+				});
+			}
+		}, {
+			key: 'analyseAmp',
+			value: function analyseAmp(ctx, masterGain) {
+				var _this3 = this;
+	
+				this.analyser = ctx.createAnalyser();
+	
+				// debugger;
+	
+				// masterGain.connect(this.analyser);
+	
+				this.analyser.fftSize = 2048;
+				this.bufferLength = this.analyser.frequencyBinCount;
+				this.dataArray = new Uint8Array(this.bufferLength);
+	
+				(0, _webaudioBufferLoader2.default)(['../stems/beats/backseat.wav'], ctx, function (err, loadedBuffers) {
+	
+					var source = ctx.createBufferSource();
+					source.buffer = loadedBuffers[0];
+					source.loop = true;
+	
+					source.connect(_this3.analyser);
+					_this3.analyser.connect(masterGain);
+	
+					// source.connect(masterGain);
+					source.start(0);
+					_this3.prepDraw();
+				});
+			}
+		}, {
+			key: 'prepDraw',
+			value: function prepDraw() {
+				this.canvas = document.querySelector('#' + this.canvasId);
+				this.ctx = this.canvas.getContext("2d");
+				this.ctx.clearRect(0, 0, WIDTH, HEIGHT);
+				this.draw();
+			}
+		}, {
+			key: 'draw',
+			value: function draw() {
+				// debugger;
+				var drawFFT = requestAnimationFrame(this.draw);
+				this.analyser.getByteTimeDomainData(this.dataArray);
+	
+				this.ctx.fillStyle = '#f7f7f7';
+				this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+				this.ctx.lineWidth = 3;
+				this.ctx.strokeStyle = "#59b2a1";
+				this.ctx.beginPath();
+	
+				// debugger;
+				var sliceWidth = WIDTH * 1.0 / this.bufferLength;
+				var x = 0;
+	
+				for (var i = 0; i < this.bufferLength; i++) {
+					var v = this.dataArray[i] / 128.0;
+					var y = v * HEIGHT / 6;
+					// console.log(`${v}: ${y}`);
+	
+					if (i === 0) {
+						this.ctx.moveTo(x, y);
+					} else {
+						this.ctx.lineTo(x, y);
+					}
+	
+					x += sliceWidth;
+				}
+	
+				this.ctx.lineTo(WIDTH, HEIGHT / 2);
+				this.ctx.stroke();
+	
+				// this.draw();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				return _react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement('canvas', { id: this.canvasId })
+				);
+			}
+		}]);
+	
+		return Visualizer;
+	}(_react2.default.Component);
+	
+	exports.default = Visualizer;
 
 /***/ }
 /******/ ]);
