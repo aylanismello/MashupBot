@@ -32,10 +32,7 @@ class App extends React.Component {
 
 
 		this.state = {
-			note: 0,
-			loaded: false,
-			playing: false,
-			buffersLoaded: 0
+			note: 0
 		};
 
 		this.channels = {
@@ -75,6 +72,7 @@ class App extends React.Component {
 		this.nextSoundCircleId = `beat-0`;
 		this.nextChannel = 'beat';
 
+		this.startTracks = this.startTracks.bind(this);
 		this.masterGain = this.contxt.createGain();
 		this.masterGain.connect(this.contxt.destination);
 
@@ -83,11 +81,10 @@ class App extends React.Component {
 		this.metronome = this.metronome.bind(this);
 
 
-		this.handleUser = this.handleUser.bind(this);
+		this.handlePlayToggle = this.handlePlayToggle.bind(this);
 		this.tick = this.tick.bind(this);
 		this.stopMetronome = this.stopMetronome.bind(this);
 		this.setMasterGain = this.setMasterGain.bind(this);
-		this.switchTrack = this.switchTrack.bind(this);
 
 		this.setCanvas = this.setCanvas.bind(this);
 		this.makeChannelFromBuffers = this.makeChannelFromBuffers.bind(this);
@@ -218,29 +215,14 @@ class App extends React.Component {
 
 			setChannel(channel);
 
-			this.setState({buffersLoaded: this.state.buffersLoaded + 1});
+			this.props.setChannelsLoaded(this.props.channelsLoaded + 1);
 		});
 
 	}
 
-
-
-
-
-
-
-
 	metronome(e) {
 		let t0 = e.playbackTime;
 
-
-		// Object.keys(this.channelsToSchedule).forEach(channel => {
-		// 	this.switchTrack(this.channelsToSchedule[channel].nextTrackIdx,
-		// 			this.channelsToSchedule[channel].soundCircleId, channel,
-		// 				true);
-		// });
-
-		// debugger;
 		this.resetTracks(this.props.selectedTracks, this.channels);
 
 
@@ -266,24 +248,29 @@ class App extends React.Component {
 		}
 	}
 
+	handlePlayToggle() {
 
 
-	handleUser() {
-		if (this.state.playing) {
-			this.stopMetronome();
-		} else {
+
+
+		if(!this.props.started) {
+			this.startTracks();
 			this.startMetronome();
+			this.props.start();
+		}  else if (this.props.playing) {
+			// this.stopMetronome();
+			this.contxt.suspend();
+		} else {
+			this.contxt.resume();
+			// this.startMetronome();
 		}
+
+		this.props.togglePlay();
+
+
 	}
 
-	startMetronome() {
-		let timeSlice = TIME_SLICE;
-		let bpmMultiplier = Math.log2(timeSlice/2);
-		const spb = 60.0 / (bpm * bpmMultiplier);
-		this.spb = spb;
-		this.setState({playing: true});
-
-
+	startTracks() {
 		Object.keys(this.channels).forEach(channel =>{
 			this.channels[channel].tracks.forEach((track, idx) => {
 				if(idx === 0){
@@ -295,11 +282,22 @@ class App extends React.Component {
 			});
 		});
 
+	}
+
+	startMetronome() {
+		this.setMasterGain(0.5);
+		let timeSlice = TIME_SLICE;
+		let bpmMultiplier = Math.log2(timeSlice/2);
+		const spb = 60.0 / (bpm * bpmMultiplier);
+		this.spb = spb;
+
+
 		this.sched.start(this.metronome);
 	}
 
+
 	stopMetronome () {
-  	this.sched.stop(true);
+  	// this.sched.stop(true);
 		this.setMasterGain(0);
   }
 
@@ -307,57 +305,17 @@ class App extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-
-
 	resetTracks(selectedTracks, channels) {
 
-			// debugger;
 		Object.keys(this.channels).forEach(channel => {
 			this.muteAllTracks(this.channels[channel].tracks);
-			// debugger;
-			// debugger;
 			let trackIdx = selectedTracks[channel];
 			channels[channel].tracks[trackIdx].setGain(DEFAULT_CHANNEL_GAIN);
-			// this.props.selectedTracks[channel].setGain(DEFAULT_CHANNEL_GAIN);
-
 		});
-		// this.muteAllTracks(this.channels[channel].tracks);
-		// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
 
 	}
 
 
-
-	// switchTrack(trackIdx, soundCircleId, channel, isScheduled=false) {
-	//
-	// 	if (!isScheduled) {
-	// 		let channelToSchedule = this.channelsToSchedule[channel];
-	// 		channelToSchedule.nextTrackIdx = trackIdx;
-	//
-	// 		channelToSchedule.isScheduled = isScheduled;
-	//
-	//
-	// 		// THIS IS WHAT QUANTIZES CHANGES
-	// 		// return;
-	// 	}
-	//
-	//
-	// 	let selectedTrack = this.channels[channel].tracks[trackIdx];
-	//
-	// 	this.resetAllCircles(this.circles);
-	//
-	//
-	// 	// this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
-	//
-	// 	this.muteAllTracks(this.channels[channel].tracks);
-	// 	selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-	//
-	// }
-
-
-	switchTrack() {
-		console.log('fuck you.');
-	}
 
 	resetAllCircles(circles) {
 		Object.keys(circles).forEach(circle => {
@@ -378,9 +336,9 @@ class App extends React.Component {
 
 	render() {
 
-		let playerText = this.state.playing ? "STOP" : "START";
+		let playerText = this.props.playing ? "STOP" : "START";
 
-		if (this.state.buffersLoaded === 3){
+		if (this.props.channelsLoaded === 3){
 
 			let canvasId = 'mashupRing';
 
@@ -396,9 +354,7 @@ class App extends React.Component {
 									<Channel
 										tracks={this.channels[channel].tracks}
 										channelName={channel}
-										switchTrack={this.switchTrack}
 										setChannelGain={this.channels[channel].setGain}
-										setCanvas={this.setCanvas}
 										defaultGain={DEFAULT_CHANNEL_GAIN}
 										key={idx}
 										/>
@@ -408,7 +364,7 @@ class App extends React.Component {
 						})};
 
 
-						<button onClick={this.handleUser} >{playerText}</button>
+						<button onClick={this.handlePlayToggle} >{playerText}</button>
 					</div>
 					<div className="mashup-ring">
 						{/* <MashupRing setCanvas={this.setCanvas} canvasId={canvasId}/> */}
