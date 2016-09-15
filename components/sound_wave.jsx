@@ -40,7 +40,7 @@ class SoundWave extends React.Component {
 		this.analyser.getByteTimeDomainData(this.dataArray);
 
 
-		if (this.props.selectedTracks[this.props.channelName] === this.props.idx) {
+		if (this.props.channels[this.props.channelName].selectedTrack === this.props.idx) {
 			this.fillStyle = '#607d8b';
 			this.strokeStyle = 'white';
 		} else {

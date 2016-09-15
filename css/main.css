@@ -1,4 +1,33 @@
 @import "https://fonts.googleapis.com/css?family=Baloo+Tamma";
+@import "https://fonts.googleapis.com/css?family=Bungee+Shade|Monoton";
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+  .container .navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: whitesmoke;
+    width: 100%;
+    height: 70px; }
+    .container .navbar-container .logo {
+      font-family: "Bungee Shade"; }
+  .container .metronome-container {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: 70px;
+    background: black;
+    width: 200px; }
+    .container .metronome-container .metronome {
+      margin: 0 auto;
+      font-size: 48px;
+      color: #77d0c0;
+      max-width: 50%; }
+      .container .metronome-container .metronome .metronome-beat {
+        font-family: Monoton, Arial; }
+
 .circleBase {
   border-radius: 100%; }
 

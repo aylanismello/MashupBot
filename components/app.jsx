@@ -3,6 +3,7 @@ import loader  from 'webaudio-buffer-loader';
 import WebAudioScheduler from 'web-audio-scheduler';
 import MashupRing from './mashup_ring';
 import Channel from './channel';
+import MetronomeContainer from './metronome_container';
 
 const path = './stems';
 const BEATS_PATH = './stems/beats';
@@ -20,19 +21,13 @@ const TimeSlices = {
 };
 
 const bpm = 160;
-const TIME_SLICE = 32;
+const TIME_SLICE = 4;
 
 class App extends React.Component {
 
 	constructor(props) {
 
 		super(props);
-
-		this.channels = {
-			beat: {},
-			acapella: {},
-			melody: {}
-		};
 
 		this.circles = {};
 		this.resetTracks = this.resetTracks.bind(this);
@@ -141,7 +136,8 @@ class App extends React.Component {
 
 		Object.keys(buffers).forEach(buffer => {
 			this.makeChannelFromBuffers(buffers[buffer], channel => {
-				this.channels[buffer] = channel;
+				this.props.initChannel(buffer, channel);
+
 			});
 		});
 	}
@@ -158,6 +154,7 @@ class App extends React.Component {
 			let channel = {
 				tracks,
 				channelGainNode,
+				selectedTrack: 0,
 				setGain: (gain) => {
 					channelGainNode.gain.value = gain;
 				}
@@ -171,7 +168,8 @@ class App extends React.Component {
 
 	metronome(e) {
 		let t0 = e.playbackTime;
-		this.resetTracks(this.props.selectedTracks, this.channels);
+
+		this.resetTracks();
 
 		for (var step = 0; step <= TIME_SLICE; step++) {
 			let schedStartTime = t0 + (this.spb * step);
@@ -184,6 +182,7 @@ class App extends React.Component {
 	}
 
 	tick(e) {
+		this.props.tick(TIME_SLICE);
 		let arcSize = (CIRCUMFERENCE / (Number(TIME_SLICE) * 1.0));
 		let startingRad = ((CIRCUMFERENCE / TIME_SLICE ) * e.args.beat);
 
@@ -209,8 +208,8 @@ class App extends React.Component {
 	}
 
 	startTracks() {
-		Object.keys(this.channels).forEach(channel =>{
-			this.channels[channel].tracks.forEach((track, idx) => {
+		Object.keys(this.props.channels).forEach(channel =>{
+			this.props.channels[channel].tracks.forEach((track, idx) => {
 				if(idx === 0){
 					track.setGain(DEFAULT_CHANNEL_GAIN);
 				} else {
@@ -240,12 +239,12 @@ class App extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-	resetTracks(selectedTracks, channels) {
+	resetTracks() {
 
-		Object.keys(this.channels).forEach(channel => {
-			this.muteAllTracks(this.channels[channel].tracks);
-			let trackIdx = selectedTracks[channel];
-			channels[channel].tracks[trackIdx].setGain(DEFAULT_CHANNEL_GAIN);
+		Object.keys(this.props.channels).forEach(channel => {
+			this.muteAllTracks(this.props.channels[channel].tracks);
+			let trackIdx = this.props.channels[channel].selectedTrack;
+			this.props.channels[channel].tracks[trackIdx].setGain(DEFAULT_CHANNEL_GAIN);
 		});
 
 	}
@@ -268,16 +267,24 @@ class App extends React.Component {
 
 			return (
 				<div className="container">
+					<nav className="navbar-container">
+						<div className="logo"><h1>MashupBot</h1></div>
+					</nav>
+
+					<div className="metronome-container">
+						<MetronomeContainer/>
+					</div>
+
 					<div className="mix-board">
 
-						{Object.keys(this.channels).map((channel, idx) => {
+						{Object.keys(this.props.channels).map((channel, idx) => {
 							return (
 
 								<div 	className="channel">
 									<Channel
-										tracks={this.channels[channel].tracks}
+										tracks={this.props.channels[channel].tracks}
 										channelName={channel}
-										setChannelGain={this.channels[channel].setGain}
+										setChannelGain={this.props.channels[channel].setGain}
 										defaultGain={DEFAULT_CHANNEL_GAIN}
 										key={idx}
 										/>
@@ -289,8 +296,10 @@ class App extends React.Component {
 						<button onClick={this.handlePlayToggle}>{playerText}</button>
 					</div>
 					<div className="mashup-ring">
+						{/* <h1> {this.props.beat} </h1> */}
 						{/* <MashupRing setCanvas={this.setCanvas} canvasId={"mashupRing"}/> */}
 					</div>
+
 				</div>
 			);
 	 	} else {
