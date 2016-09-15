@@ -1,10 +1,8 @@
 import React from 'react';
 import loader  from 'webaudio-buffer-loader';
-import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
 import MashupRing from './mashup_ring';
 import Channel from './channel';
-
 
 const path = './stems';
 const BEATS_PATH = './stems/beats';
@@ -30,47 +28,18 @@ class App extends React.Component {
 
 		super(props);
 
-
-		this.state = {
-			note: 0
-		};
-
 		this.channels = {
 			beat: {},
 			acapella: {},
 			melody: {}
 		};
 
-
-		this.channelsToSchedule = {
-			beat: {
-				nextTrackIdx: 0,
-				isScheduled: false,
-				soundCircleId: `beat-0`
-			},
-			acapella: {
-				nextTrackIdx: 0,
-				isScheduled: false,
-				soundCircleId: `acapella-0`
-			},
-			melody: {
-				nextTrackIdx: 0,
-				isScheduled: false,
-				soundCircleId: `melody-0`
-			}
-		};
-
 		this.circles = {};
-
 		this.resetTracks = this.resetTracks.bind(this);
 
 		this.drawAtRad = this.drawAtRad.bind(this);
 		this.createAudioPipeline = this.createAudioPipeline.bind(this);
 		this.contxt = new AudioContext();
-
-		this.nextTrackIdx = 0;
-		this.nextSoundCircleId = `beat-0`;
-		this.nextChannel = 'beat';
 
 		this.startTracks = this.startTracks.bind(this);
 		this.masterGain = this.contxt.createGain();
@@ -89,18 +58,12 @@ class App extends React.Component {
 		this.setCanvas = this.setCanvas.bind(this);
 		this.makeChannelFromBuffers = this.makeChannelFromBuffers.bind(this);
 
-
-		// debugger;
 		this.createAudioPipeline();
-
 	}
 
 	setCanvas(id, idx) {
-
-
 		let canvas = document.querySelector(`#${id}`);
 		let ctx = canvas.getContext("2d");
-
 		ctx.lineWidth = 15;
 		ctx.strokeStyle = GREENISH;
 		let max = 2 * Math.PI;
@@ -111,18 +74,13 @@ class App extends React.Component {
 			max
 		};
 
-
 		this.circles[id] = circle;
 	}
 
-
-
 	drawAtRad(startingRadian, strokeLength, restart=false) {
-
 		startingRadian -= Math.PI / 2.0;
 
 		Object.keys(this.circles).forEach(circleKey => {
-
 			let circle = this.circles[circleKey];
 			let ctx = circle.ctx;
 
@@ -134,8 +92,6 @@ class App extends React.Component {
 			ctx.arc(100, 60, 50, startingRadian, startingRadian + strokeLength);
 			ctx.stroke();
 		});
-
-
 	}
 
 	createtrack(buffer, pathName, channelGainNode) {
@@ -146,8 +102,6 @@ class App extends React.Component {
 		let analyserNode = this.contxt.createAnalyser();
 		source.connect(analyserNode);
 		analyserNode.connect(gainNode);
-
-		// source.connect(gainNode);
 		gainNode.connect(channelGainNode);
 		channelGainNode.connect(this.masterGain);
 
@@ -162,7 +116,6 @@ class App extends React.Component {
 		};
 	}
 
-
 	createAudioPipeline() {
 
 		let buffers = {
@@ -176,13 +129,11 @@ class App extends React.Component {
 				`${MELODIES_PATH}/lullaby.wav`,
 				`${MELODIES_PATH}/mercy_me.wav`
 			],
-
 			acapella: [
 				`${ACAPELLAS_PATH}/bob.wav`,
 				`${ACAPELLAS_PATH}/green_light.wav`,
 				`${ACAPELLAS_PATH}/gucci.wav`
 			]
-
 		};
 
 
@@ -191,10 +142,7 @@ class App extends React.Component {
 				this.channels[buffer] = channel;
 			});
 		});
-
-
 	}
-
 
 	makeChannelFromBuffers(buffers, setChannel) {
 		let tracks = [];
@@ -214,7 +162,6 @@ class App extends React.Component {
 			};
 
 			setChannel(channel);
-
 			this.props.setChannelsLoaded(this.props.channelsLoaded + 1);
 		});
 
@@ -222,9 +169,7 @@ class App extends React.Component {
 
 	metronome(e) {
 		let t0 = e.playbackTime;
-
 		this.resetTracks(this.props.selectedTracks, this.channels);
-
 
 		for (var step = 0; step <= TIME_SLICE; step++) {
 			let schedStartTime = t0 + (this.spb * step);
@@ -244,30 +189,21 @@ class App extends React.Component {
 			this.drawAtRad(startingRad, arcSize, true);
 		} else {
 			this.drawAtRad(startingRad, arcSize);
-
 		}
 	}
 
 	handlePlayToggle() {
-
-
-
-
 		if(!this.props.started) {
 			this.startTracks();
 			this.startMetronome();
 			this.props.start();
 		}  else if (this.props.playing) {
-			// this.stopMetronome();
 			this.contxt.suspend();
 		} else {
 			this.contxt.resume();
-			// this.startMetronome();
 		}
 
 		this.props.togglePlay();
-
-
 	}
 
 	startTracks() {
@@ -291,13 +227,10 @@ class App extends React.Component {
 		const spb = 60.0 / (bpm * bpmMultiplier);
 		this.spb = spb;
 
-
 		this.sched.start(this.metronome);
 	}
 
-
 	stopMetronome () {
-  	// this.sched.stop(true);
 		this.setMasterGain(0);
   }
 
@@ -315,33 +248,21 @@ class App extends React.Component {
 
 	}
 
-
-
 	resetAllCircles(circles) {
 		Object.keys(circles).forEach(circle => {
 			circles[circle].ctx.strokeStyle = GREENISH;
 		});
-
-
 	}
 
-
 	muteAllTracks(tracks) {
-		tracks.forEach(channel => {
-			channel.setGain(0);
-
-		});
-
-}
+		tracks.forEach(channel => channel.setGain(0));
+	}
 
 	render() {
 
 		let playerText = this.props.playing ? "STOP" : "START";
 
-		if (this.props.channelsLoaded === 3){
-
-			let canvasId = 'mashupRing';
-
+		if(this.props.channelsLoaded === 3){
 
 			return (
 				<div className="container">
@@ -361,13 +282,12 @@ class App extends React.Component {
 								</div>
 
 							);
-						})};
+						})}
 
-
-						<button onClick={this.handlePlayToggle} >{playerText}</button>
+						<button onClick={this.handlePlayToggle}>{playerText}</button>
 					</div>
 					<div className="mashup-ring">
-						{/* <MashupRing setCanvas={this.setCanvas} canvasId={canvasId}/> */}
+						{/* <MashupRing setCanvas={this.setCanvas} canvasId={"mashupRing"}/> */}
 					</div>
 				</div>
 			);
@@ -378,8 +298,8 @@ class App extends React.Component {
 					</div>
 				);
 			}
-
 	}
+
 }
 
 export default App;

@@ -1,32 +1,16 @@
 import React from 'react';
-// import SoundCircle from './sound_circle';
-import SoundWave from './sound_wave';
 import SoundWaveContainer from './sound_wave_container';
 import ReactSlider from './react_slider';
 
 
-class Channel extends React.Component {
+const Channel = ({tracks, channelName, setChannelGain, defaultGain}) => {
 
-	constructor(props) {
-		super(props);
-		this.tracks = props.tracks;
-	}
-
-
-
-
-	render() {
-
-
-
-		let tracksJSX = this.tracks.map((track, idx) => {
-			// let playing = (idx === this.state.playingTrackIdx) ? true : false;
-
+		let tracksJSX = tracks.map((track, idx) => {
 			return (
 				<div key={idx} className="channel">
 					<SoundWaveContainer idx={idx}
 						track={track}
-						channelName={this.props.channelName}
+						channelName={channelName}
 						/>
 				</div>
 			);
@@ -35,16 +19,15 @@ class Channel extends React.Component {
 		return (
 			<div>
 			<h1 className="channel-name">
-				{this.props.channelName}
+				{channelName}
 			</h1>
 				{tracksJSX}
-				<ReactSlider setGain={this.props.setChannelGain}
-				defaultGain={this.props.defaultGain}
+				<ReactSlider setGain={setChannelGain}
+				defaultGain={defaultGain}
 				/>
 			</div>
 		);
-	}
 
-}
+};
 
 export default Channel;
