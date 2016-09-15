@@ -17,7 +17,6 @@
     "bonsai": "^0.4.2",
     "create-js": "0.0.1",
     "fs": "0.0.1-security",
-    "google-images": "^1.0.0",
     "howler": "^2.0.0",
     "lodash": "^4.15.0",
     "progressbar.js": "^1.0.1",

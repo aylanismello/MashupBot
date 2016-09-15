@@ -61,6 +61,8 @@ class App extends React.Component {
 		this.createAudioPipeline();
 	}
 
+
+
 	setCanvas(id, idx) {
 		let canvas = document.querySelector(`#${id}`);
 		let ctx = canvas.getContext("2d");
