@@ -2,6 +2,7 @@ import React from 'react';
 import loader  from 'webaudio-buffer-loader';
 import ProgressCircle from './progress_circle';
 import WebAudioScheduler from 'web-audio-scheduler';
+import MashupRing from './mashup_ring';
 import Channel from './channel';
 
 
@@ -64,6 +65,8 @@ class App extends React.Component {
 
 		this.circles = {};
 
+		this.resetTracks = this.resetTracks.bind(this);
+
 		this.drawAtRad = this.drawAtRad.bind(this);
 		this.createAudioPipeline = this.createAudioPipeline.bind(this);
 		this.contxt = new AudioContext();
@@ -78,6 +81,8 @@ class App extends React.Component {
 	  this.sched = new WebAudioScheduler({ context: this.contxt });
 		this.startMetronome = this.startMetronome.bind(this);
 		this.metronome = this.metronome.bind(this);
+
+
 		this.handleUser = this.handleUser.bind(this);
 		this.tick = this.tick.bind(this);
 		this.stopMetronome = this.stopMetronome.bind(this);
@@ -86,6 +91,9 @@ class App extends React.Component {
 
 		this.setCanvas = this.setCanvas.bind(this);
 		this.makeChannelFromBuffers = this.makeChannelFromBuffers.bind(this);
+
+
+		// debugger;
 		this.createAudioPipeline();
 
 	}
@@ -215,17 +223,25 @@ class App extends React.Component {
 
 	}
 
+
+
+
+
+
+
+
 	metronome(e) {
 		let t0 = e.playbackTime;
 
 
+		// Object.keys(this.channelsToSchedule).forEach(channel => {
+		// 	this.switchTrack(this.channelsToSchedule[channel].nextTrackIdx,
+		// 			this.channelsToSchedule[channel].soundCircleId, channel,
+		// 				true);
+		// });
 
-		Object.keys(this.channelsToSchedule).forEach(channel => {
-			this.switchTrack(this.channelsToSchedule[channel].nextTrackIdx,
-					this.channelsToSchedule[channel].soundCircleId, channel,
-						true);
-		});
-
+		// debugger;
+		this.resetTracks(this.props.selectedTracks, this.channels);
 
 
 		for (var step = 0; step <= TIME_SLICE; step++) {
@@ -249,6 +265,8 @@ class App extends React.Component {
 
 		}
 	}
+
+
 
 	handleUser() {
 		if (this.state.playing) {
@@ -289,40 +307,56 @@ class App extends React.Component {
 		this.masterGain.gain.value = gain;
 	}
 
-	switchTrack(trackIdx, soundCircleId, channel, isScheduled=false) {
 
-		if (!isScheduled) {
-			let channelToSchedule = this.channelsToSchedule[channel];
-			channelToSchedule.nextTrackIdx = trackIdx;
+
+	resetTracks(selectedTracks, channels) {
+
 			// debugger;
+		Object.keys(this.channels).forEach(channel => {
+			this.muteAllTracks(this.channels[channel].tracks);
+			// debugger;
+			// debugger;
+			let trackIdx = selectedTracks[channel];
+			channels[channel].tracks[trackIdx].setGain(DEFAULT_CHANNEL_GAIN);
+			// this.props.selectedTracks[channel].setGain(DEFAULT_CHANNEL_GAIN);
+
+		});
+		// this.muteAllTracks(this.channels[channel].tracks);
+		// selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+
+	}
 
 
-			// channelToSchedule.soundCircleId = soundCircleId;
 
-			channelToSchedule.isScheduled = isScheduled;
+	// switchTrack(trackIdx, soundCircleId, channel, isScheduled=false) {
+	//
+	// 	if (!isScheduled) {
+	// 		let channelToSchedule = this.channelsToSchedule[channel];
+	// 		channelToSchedule.nextTrackIdx = trackIdx;
+	//
+	// 		channelToSchedule.isScheduled = isScheduled;
+	//
+	//
+	// 		// THIS IS WHAT QUANTIZES CHANGES
+	// 		// return;
+	// 	}
+	//
+	//
+	// 	let selectedTrack = this.channels[channel].tracks[trackIdx];
+	//
+	// 	this.resetAllCircles(this.circles);
+	//
+	//
+	// 	// this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
+	//
+	// 	this.muteAllTracks(this.channels[channel].tracks);
+	// 	selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
+	//
+	// }
 
-			// console.log(`switching to ${channelToSchedule.nextTrackIdx}`);
-			// console.log(`circle id of ${channelToSchedule.soundCircleId}`);
-			// console.log(`isScheduled? ${channelToSchedule.isScheduled}`);
-			//
-			// console.log(``);
 
-
-			// THIS IS WHAT QUANTIZES CHANGES
-			// return;
-		}
-
-
-		let selectedTrack = this.channels[channel].tracks[trackIdx];
-
-		this.resetAllCircles(this.circles);
-
-
-		// this.circles[soundCircleId].ctx.strokeStyle = "#45d9e5";
-
-		this.muteAllTracks(this.channels[channel].tracks);
-		selectedTrack.setGain(DEFAULT_CHANNEL_GAIN);
-
+	switchTrack() {
+		console.log('fuck you.');
 	}
 
 	resetAllCircles(circles) {
@@ -347,28 +381,38 @@ class App extends React.Component {
 		let playerText = this.state.playing ? "STOP" : "START";
 
 		if (this.state.buffersLoaded === 3){
+
+			let canvasId = 'mashupRing';
+
+
 			return (
-				<div className="mix-board">
+				<div className="container">
+					<div className="mix-board">
 
-					{Object.keys(this.channels).map((channel, idx) => {
-						return (
+						{Object.keys(this.channels).map((channel, idx) => {
+							return (
 
-							<div 	className="channel">
-								<Channel
-									tracks={this.channels[channel].tracks}
-									channelName={channel}
-									switchTrack={this.switchTrack}
-									setChannelGain={this.channels[channel].setGain}
-									setCanvas={this.setCanvas}
-									defaultGain={DEFAULT_CHANNEL_GAIN}
-									key={idx}
-									/>
-							</div>
+								<div 	className="channel">
+									<Channel
+										tracks={this.channels[channel].tracks}
+										channelName={channel}
+										switchTrack={this.switchTrack}
+										setChannelGain={this.channels[channel].setGain}
+										setCanvas={this.setCanvas}
+										defaultGain={DEFAULT_CHANNEL_GAIN}
+										key={idx}
+										/>
+								</div>
 
-						);
-					})};
+							);
+						})};
 
-					<button onClick={this.handleUser} >{playerText}</button>
+
+						<button onClick={this.handleUser} >{playerText}</button>
+					</div>
+					<div className="mashup-ring">
+						{/* <MashupRing setCanvas={this.setCanvas} canvasId={canvasId}/> */}
+					</div>
 				</div>
 			);
 	 	} else {

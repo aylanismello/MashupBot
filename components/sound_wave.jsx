@@ -13,6 +13,7 @@ class SoundWave extends React.Component {
 		this.draw = this.draw.bind(this);
 
 		this.fillStyle = 'white';
+		this.strokeStyle = '#59b2a1';
 
 		this.analyser = props.track.analyserNode;
 		this.analyseAmp = this.analyseAmp.bind(this);
@@ -51,9 +52,11 @@ class SoundWave extends React.Component {
 
 
 		if (this.props.selectedTracks[this.props.channelName] === this.props.idx) {
-			this.fillStyle = 'black';
+			this.fillStyle = '#607d8b';
+			this.strokeStyle = 'white';
 		} else {
 			this.fillStyle = 'white';
+			this.strokeStyle = 'black';
 		}
 
 
@@ -63,7 +66,7 @@ class SoundWave extends React.Component {
 		this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
 		this.ctx.lineWidth = 3;
 
-		this.ctx.strokeStyle = "#59b2a1";
+		this.ctx.strokeStyle = this.strokeStyle;
 		this.ctx.beginPath();
 
 		// debugger;
