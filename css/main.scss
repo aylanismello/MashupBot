@@ -1,32 +1,28 @@
-@import 'https://fonts.googleapis.com/css?family=Baloo+Tamma';
-@import 'https://fonts.googleapis.com/css?family=Bungee+Shade|Monoton';
-
+@import "https://fonts.googleapis.com/css?family=Baloo+Tamma";
+@import "https://fonts.googleapis.com/css?family=Bungee+Shade|Monoton";
 
 $navbar-height: 70px;
-
-
-
-
 
 .container {
   display: flex;
   align-items: center;
- justify-content: center;
+  justify-content: center;
 
+  .main-content {
+    margin-top: 70px;
+  }
 
- .navbar-container {
-
-   position: fixed;
-   top: 0;
-   left: 0;
-   background: whitesmoke;
-   width: 100%;
-   height: $navbar-height;
-   .logo {
-     font-family: "Bungee Shade";
-   }
- }
-
+  .navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: whitesmoke;
+    width: 100%;
+    height: $navbar-height;
+    .logo {
+      font-family: "Bungee Shade";
+    }
+  }
 
   .metronome-container {
     display: flex;
@@ -36,36 +32,33 @@ $navbar-height: 70px;
     background: black;
     width: 200px;
 
-
-    .metronome{
+    .metronome {
       margin: 0 auto;
       font-size: 48px;
       color: #77d0c0;
-       max-width: 50%;
+      max-width: 50%;
 
       .metronome-beat {
         font-family: Monoton, Arial;
       }
     }
   }
-
 }
 
 .circleBase {
-    border-radius: 100%;
+  border-radius: 100%;
 }
 
 .type1 {
-    width: 100px;
-    height: 100px;
-    background: yellow;
-    border: 3px solid red;
+  width: 100px;
+  height: 100px;
+  background: yellow;
+  border: 3px solid red;
 }
 img {
   width: 100%;
   height: auto;
   display: block;
-
 }
 
 .mix-board {
@@ -74,11 +67,11 @@ img {
 
 .fft {
   border-radius: 1000px;
-    /* height: 400px; */
-    width: 200px;
-    /* height: auto; */
-    height: 200px;
-    margin: 20px
+  /* height: 400px; */
+  width: 200px;
+  /* height: auto; */
+  height: 200px;
+  margin: 20px;
 }
 //
 //
@@ -96,9 +89,7 @@ img {
   .sound-circle {
     width: inherit;
     height: inherit;
-
   }
-
 }
 
 // .canvas {
@@ -106,13 +97,11 @@ img {
 //   height: 200px;
 // }
 
-
 html {
   font-size: 16px;
 }
 
 body {
-  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,14 +113,13 @@ p {
   font-family: monospace;
   font-weight: bold;
   font-size: 1.4rem;
-  color: #90A4AE;
+  color: #90a4ae;
 }
 
 .channel-name {
   text-align: center;
   font-family: "Baloo Tamma", Arial;
   text-transform: uppercase;
-
 }
 
 .Slider {
@@ -149,11 +137,11 @@ p {
     fill: transparent;
   }
   .Slider-circle {
-    stroke: #607D8B;
+    stroke: #607d8b;
   }
 
   .Slider-bar {
-    stroke: #00B0FF;
+    stroke: #00b0ff;
     stroke-dashoffset: 0;
     stroke-dasharray: 0;
   }

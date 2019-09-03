@@ -270,6 +270,7 @@ class App extends React.Component {
 					<nav className="navbar-container">
 						<div className="logo"><h1>MashupBot</h1></div>
 					</nav>
+					<div className="main-content">
 
 					<div className="metronome-container">
 						<MetronomeContainer/>
@@ -298,6 +299,7 @@ class App extends React.Component {
 					<div className="mashup-ring">
 						{/* <h1> {this.props.beat} </h1> */}
 						{/* <MashupRing setCanvas={this.setCanvas} canvasId={"mashupRing"}/> */}
+					</div>
 					</div>
 
 				</div>
