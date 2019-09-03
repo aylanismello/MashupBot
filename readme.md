@@ -2,25 +2,10 @@
 
 ### Background
 
-Loopy is an IPhone app that offers an intuitive and fun way to layer
-musical ideas into little performance pieces. My idea is to recreate Loopy,
-but with premade loops of other songs, letting the user switch between
-different loops. In effect, these are mashups that the user can make
-on the spot.
-
-### Functionality and MVP
-- [ ] Pause/play different loops on the loop grid
-- [ ] Switch between different loops
-- [ ] Loops are color coded
-- [ ] A progress bar on each loop rotates around the circle to indicate progress on a given loop
-- [ ] Volume control
-
-### Wireframes
-
-![loopy](http://evolver.fm/wp-content/uploads/2012/04/loopyhd2.jpg)
+As a Mashupologist myself, I thought it'd be fun to give people the chance to make their own mashups on the fly. All built with Web technologies! 
 
 ### Architecture and Technologies
-This project will be implemented with these technologies:
+This project used the following technologies:
 
 * Vanilla js
 * The Canvas API
